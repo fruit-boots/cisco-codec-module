@@ -54,7 +54,7 @@ class Codec:
             [items.pop(key) for key in ['status_xml','configuration_xml','macro_details','extension_details','http_secure']]
         return items
         
-    def set_attributes(self, dictionary, overwrite=False):
+    def set_attributes(self, dictionary, overwrite=False, preserve_cookie=False):
         """ Setting overwrite to False will only populate keys that have a None value """
         # Update default attributes by the dictionary data if it matches the available attributes
         reference = self.get_attributes('all')
@@ -66,6 +66,8 @@ class Codec:
                 else:
                     if reference[k] == None:
                         setattr(self, k, v)
+        if preserve_cookie == False:
+            self.session_cookie = None
         return self.get_attributes('all')
 
 
