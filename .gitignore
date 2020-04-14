@@ -135,4 +135,12 @@ zoom_button_v3.0.py
 file_backups/
 *.log
 cookies.txt
+codec_backups/
+file_backups/
+bad_cookies.txt
+cookie_cleaner.log
+codec_info.log
+cookies.txt
+output.csv
+*.pyc
 
