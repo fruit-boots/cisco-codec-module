@@ -127,3 +127,12 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Custom
+testing/
+codecs.json
+zoom_button_v3.0.py
+file_backups/
+*.log
+cookies.txt
+
