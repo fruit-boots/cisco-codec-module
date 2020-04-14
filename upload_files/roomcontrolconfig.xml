@@ -1,0 +1,12 @@
+<Extensions>
+  <Version>1.6</Version>
+  <Panel>
+    <PanelId>zoom_meeting</PanelId>
+    <Type>Home</Type>
+    <Icon>Camera</Icon>
+    <Order>1</Order>
+    <Color>#288BFB</Color>
+    <Name>Join Zoom</Name>
+    <ActivityType>Custom</ActivityType>
+  </Panel>
+</Extensions>
