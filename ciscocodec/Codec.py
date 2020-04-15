@@ -16,7 +16,7 @@ class Codec:
         self.ip = ip
         self.user = user
         self.password = password
-        self.device_name = device_name
+        self.device_name = str(device_name)
 
         # Set attribute flags to default
         self.region = None
@@ -263,7 +263,7 @@ class Codec:
             except AttributeError:
                 return
             else:
-                self.device_name = name
+                self.device_name = str(name)
                 return name
                 
     def get_connected_devices(self):
