@@ -6,7 +6,7 @@ import logging
 import time
 import os
 """
-Written by Adam Bruneau - bruneau.adam@bcg.com with valuable input from Scott Thorton
+Written by Adam Bruneau - bruneau.adam@bcg.com. Special thanks to Scott Thorton.
 
 """
 
