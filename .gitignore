@@ -143,4 +143,4 @@ codec_info.log
 cookies.txt
 output.csv
 *.pyc
-
+cookie_cleaner.py
