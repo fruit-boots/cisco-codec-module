@@ -12,7 +12,7 @@ Written by Adam Bruneau - bruneau.adam@bcg.com
 
 class Codec:
     """ Interact with Cisco Codecs via XMLAPI. Instatiate class with a minimum dictionary containing ip, user, pass """
-    def __init__(self, ip, user, password, device_name='device_name'):
+    def __init__(self, ip='xxx.xxx.xxx.xxx', user='admin', password='******', device_name='device_name'):
         self.ip = ip
         self.user = user
         self.password = password
@@ -151,18 +151,29 @@ class Codec:
                 xml = requests.get(url, headers=new_cookie,verify=False)
                 if xml.status_code == 401:
                     raise AuthenticationError(self)
-                if xml.status_code != 200:
-                    raise GeneralError(self, xml.content.decode())
                 if xml.status_code == 200:
                     return xml
-            else:
+                if xml.status_code != 200:
+                    raise GeneralError(self, xml.content.decode())
+            # make sure XML is being returned
+            if xml.content.decode().startswith('<?xml'):
                 return xml
+            # if not, get a new cookie
+            else:
+                print(f"Attempting to get another cookie for {self.device_name}")
+                new_cookie = self.get_session_cookie()
+                xml = requests.get(url, headers=new_cookie,verify=False)
+                if xml.content.decode().startswith('<?xml'):
+                    return xml
+                else:
+                    raise GeneralError(self, "Issue in getting XML response.")
+            
 
     def put_xml(self, payload):
         """ Returns a request object when called directly. Use .content method to see the xml """
         if not isinstance(self.session_cookie, dict):
             raise GeneralError(self, "No session cookie avaiable!")
-        # copy the cookie because we don't want to alter the regular cookie
+        # copy the cookie because we don't want to alter the stored one
         header=self.session_cookie.copy()
         header['Content-Type'] = 'text/xml'
         url = f'http://{self.ip}/putxml' 
@@ -181,12 +192,21 @@ class Codec:
                 xml = requests.post(url, headers=new_cookie, data=payload, verify=False)
                 if xml.status_code == 401:
                     raise AuthenticationError(self)
-                if xml.status_code != 200:
-                    raise GeneralError(self, xml.content.decode())
                 if xml.status_code == 200:
                     return xml
-            else:
+                if xml.status_code != 200:
+                    raise GeneralError(self, xml.content.decode())
+            if xml.content.decode().startswith('<?xml'):
                 return xml
+            else:
+                print(f"Attempting to get another cookie for {self.device_name}")
+                new_cookie = self.get_session_cookie().copy() # Again, make a copy so to not alter the object attribute
+                new_cookie['Content-Type'] = 'text/xml'
+                xml = requests.post(url, headers=new_cookie, data=payload, verify=False)
+                if xml.content.decode().startswith('<?xml'):
+                    return xml
+                else:
+                    raise GeneralError(self, "Issue in getting XML response.")
 
     def get_status_xml(self):
         """ Returns a request object when called directly. Use .content method to see the xml """
@@ -318,7 +338,7 @@ class Codec:
                             return {}
                         else:
                             # dict comprehension with serial as key to avoid overwite accidents
-                            return {cam.serialnumber.text:cam.model.text for cam in cams if cam.serialnumber.get_text() != ''}
+                            return {cam.serialnumber.text:cam.model.text for cam in cams if cam.find('serialnumber') != None}
                             
             def _other_serials(soup):
                 try:
