@@ -16,7 +16,7 @@ class Codec:
         self.ip = ip
         self.user = user
         self.password = password
-        self.device_name = str(device_name)
+        self.device_name = device_name
 
         # Set attribute flags to default
         self.region = None
@@ -41,6 +41,7 @@ class Codec:
         self.number_of_extensions = None
         self.extension_details = None
         self.cdp = None
+        self.timeout = 10
 
 
     def get_attributes(self, all=False):
@@ -51,13 +52,18 @@ class Codec:
         items = self.__dict__.copy()
 
         if not all:
-            [items.pop(key) for key in ['status_xml','configuration_xml','macro_details','extension_details','http_secure']]
+            [items.pop(key) for key in ['status_xml','configuration_xml','macro_details','extension_details','http_secure','timeout']]
         return items
         
     def set_attributes(self, dictionary, overwrite=False, preserve_cookie=False):
         """ Setting overwrite to False will only populate keys that have a None value """
         # Update default attributes by the dictionary data if it matches the available attributes
         reference = self.get_attributes('all')
+        
+        # Silly codecs, device names are strings...
+        if 'device_name' in dictionary.keys():
+            if isinstance(dictionary['device_name'], int):
+                dictionary['device_name'] = str(dictionary['device_name'])
         
         for k,v in dictionary.items():
             if k in reference.keys() :
@@ -66,6 +72,7 @@ class Codec:
                 else:
                     if reference[k] == None:
                         setattr(self, k, v)
+                        
         if preserve_cookie == False:
             self.session_cookie = None
         return self.get_attributes('all')
@@ -75,7 +82,7 @@ class Codec:
         """ Tries to get a session cookie. If HTTPS only, it will set the mode to HTTP/HTTPS """
         auth = requests.auth.HTTPBasicAuth(self.user, self.password)
         try:
-            session = requests.post(f'http://{self.ip}/xmlapi/session/begin',auth=auth, verify=False)
+            session = requests.post(f'http://{self.ip}/xmlapi/session/begin',auth=auth, verify=False, timeout=self.timeout)
         except requests.exceptions.ConnectionError as e:
             raise GeneralError(self, f"Cookie Request Failed.\n{e}")
         else:
@@ -93,7 +100,7 @@ class Codec:
                         for x in range(5):
                             # once the setting has changed, you need to wait for it to stick
                             time.sleep(3)
-                            retry = requests.post(f'http://{self.ip}/xmlapi/session/begin',auth=auth, verify=False)
+                            retry = requests.post(f'http://{self.ip}/xmlapi/session/begin',auth=auth, verify=False, timeout=self.timeout)
                             try:
                                 self.session_cookie = {'Cookie':'SessionId={}'.format(retry.cookies['SessionId'])}
                             except KeyError:
@@ -119,7 +126,7 @@ class Codec:
         """ Returns True if succesfull """
         if isinstance(self.session_cookie, dict):
             try:
-                session = requests.post(f'http://{self.ip}/xmlapi/session/end', headers=self.session_cookie,verify=False)
+                session = requests.post(f'http://{self.ip}/xmlapi/session/end', headers=self.session_cookie,verify=False, timeout=self.timeout)
             except requests.exceptions.ConnectionError as e:
                 raise GeneralError(self, f"Issue when closing session for Cookie: {self.session_cookie['Cookie']}\n{e}")
             else:
@@ -139,7 +146,7 @@ class Codec:
             raise GeneralError(self, "No session cookie available!")
         url = f'http://{self.ip}/{query}'      
         try:
-            xml = requests.get(url, headers=self.session_cookie,verify=False)
+            xml = requests.get(url, headers=self.session_cookie,verify=False, timeout=self.timeout)
         except requests.exceptions.ConnectionError as e:
             raise GeneralError(self, f"HTTP GET Request Failed!\n{e}")
         else:
@@ -148,7 +155,7 @@ class Codec:
             if xml.status_code == 401 and self.password_verified == True:
                 print("Attempting to get another cookie")
                 new_cookie = self.get_session_cookie()
-                xml = requests.get(url, headers=new_cookie,verify=False)
+                xml = requests.get(url, headers=new_cookie,verify=False, timeout=self.timeout)
                 if xml.status_code == 401:
                     raise AuthenticationError(self)
                 if xml.status_code == 200:
@@ -162,7 +169,7 @@ class Codec:
             else:
                 print(f"Attempting to get another cookie for {self.device_name}")
                 new_cookie = self.get_session_cookie()
-                xml = requests.get(url, headers=new_cookie,verify=False)
+                xml = requests.get(url, headers=new_cookie,verify=False, timeout=self.timeout)
                 if xml.content.decode().startswith('<?xml'):
                     return xml
                 else:
@@ -178,7 +185,7 @@ class Codec:
         header['Content-Type'] = 'text/xml'
         url = f'http://{self.ip}/putxml' 
         try:
-            xml = requests.post(url, headers=header, data=payload, verify=False)
+            xml = requests.post(url, headers=header, data=payload, verify=False, timeout=self.timeout)
         except requests.exceptions.ConnectionError as e:
              raise GeneralError(self, f"HTTP POST Request Failed!\n{e}")
         else:
@@ -189,7 +196,7 @@ class Codec:
                 # calling get_session_cookie() will store the new cookie in the object as well.
                 new_cookie = self.get_session_cookie().copy() # Again, make a copy so to not alter the object attribute
                 new_cookie['Content-Type'] = 'text/xml'
-                xml = requests.post(url, headers=new_cookie, data=payload, verify=False)
+                xml = requests.post(url, headers=new_cookie, data=payload, verify=False, timeout=self.timeout)
                 if xml.status_code == 401:
                     raise AuthenticationError(self)
                 if xml.status_code == 200:
@@ -202,7 +209,7 @@ class Codec:
                 print(f"Attempting to get another cookie for {self.device_name}")
                 new_cookie = self.get_session_cookie().copy() # Again, make a copy so to not alter the object attribute
                 new_cookie['Content-Type'] = 'text/xml'
-                xml = requests.post(url, headers=new_cookie, data=payload, verify=False)
+                xml = requests.post(url, headers=new_cookie, data=payload, verify=False, timeout=self.timeout)
                 if xml.content.decode().startswith('<?xml'):
                     return xml
                 else:
@@ -234,7 +241,7 @@ class Codec:
             mode= '<Configuration><NetworkServices><HTTP><Mode>HTTP+HTTPS</Mode></HTTP></NetworkServices></Configuration>'
         auth = requests.auth.HTTPBasicAuth(self.user, self.password)
         try:
-            r = requests.post(f"https://{self.ip}/putxml", data=mode, auth=auth, verify=False)
+            r = requests.post(f"https://{self.ip}/putxml", data=mode, auth=auth, verify=False, timeout=self.timeout)
         except requests.exceptions.ConnectionError as e:
             raise GeneralError(self, f"HTTP mode change failed!\n{e}")
         else:
@@ -276,19 +283,20 @@ class Codec:
             raise GeneralError(self, e)
         else:
             devices = soup.find_all("connecteddevice")
-            self.number_of_panels = 0
-            self.connected_devices = 0
-            for device in devices:
-                try:
-                    device = device.type.text
-                except AttributeError:
-                    # only way to skip
-                    pass
+            try:
+                device_info = {device.find('name').text:{tag.name:tag.get_text() for tag in device if tag.name != None} for device in devices if device.find('name') != None}
+                # cisco's XML returns blank name's sometimes...
+                if '' in device_info.keys():
+                    device_info.pop('')
+            except Exception as e:
+                raise GeneralError(self, f"Issue in trying to create list within connected_devices()\n{e}")
+            else:
+                if device_info == {}:
+                    return
                 else:
-                    self.connected_devices += 1
-                    if device == "TouchPanel":
-                        self.number_of_panels += 1
-            return self.connected_devices
+                    self.connected_devices = device_info
+                    return device_info
+        return
     
     def get_number_of_panels(self):
         """ Updates total connected Touch10's. """
@@ -303,14 +311,17 @@ class Codec:
             self.number_of_panels = 0
             for device in devices:
                 try:
-                    device = device.type.text
+                    device_type = device.type.text
                 except AttributeError:
                     # only way to skip
                     pass
                 else:
-                    if device == "TouchPanel":
-                        self.number_of_panels += 1
-            return self.number_of_panels
+                    if device_type == "TouchPanel":
+                        if device.status.text == "Connected":
+                            self.number_of_panels += 1
+            if self.number_of_panels == 0:
+                self.number_of_panels = None
+        return self.number_of_panels
 
     def get_serial_numbers(self):
         if self.status_xml is None:
@@ -518,14 +529,14 @@ class Codec:
         except Exception as e:
             raise GeneralError(self, e)
         else:
-            exts = soup.find_all("Panel")
+            exts = soup.find_all("PanelId")
             if len(exts)> 0:
                 try:
-                    self.extension_details = [{'id':ext.find('PanelId').text, 'xml': str(ext)} for ext in exts]
+                    self.extension_details = str(soup.Extensions)
                 except Exception as e:
                     raise GeneralError(self, e)
                 else:
-                    self.number_of_extensions = len(self.extension_details)
+                    self.number_of_extensions = len(exts)
                     return self.extension_details
             else:
                 self.extension_details = None
@@ -546,14 +557,8 @@ class Codec:
         if self.extension_details is not None:
             if not os.path.exists(folder):
                 os.makedirs(folder)        
-            xml_head = ""
-            xml_footer = ""
-            #xml_head = "<Extensions><Version>1.6</Version>\n"
-            #xml_footer = "\n</Extensions>"
-            for items in self.extension_details:
-                with open(f'{folder}/{items["id"]}.xml','w+') as output:
-                    xml = xml_head + items['xml'] + xml_footer
-                    output.write(xml)
+            with open(f'{folder}/extensions.xml','w+') as output:
+                output.write(self.extension_details)
             return True
         else:
             return "No extension details available"
@@ -580,6 +585,8 @@ class Codec:
         """ Macro name can only contain "_" or "-" in macro name, no "." """
         if not os.path.exists(filename):
             raise GeneralError(self, f"No file exists! > {filename}")
+        if " " in macro_name or "." in macro_name.rstrip('.js'):
+            raise GeneralError(self, "Cannot export a macro with illegal characters (spaces or periods)")
         header = f'<?xml version="1.0"?><Command><Macros><Macro><Save><Name>{macro_name}</Name><Overwrite>False</Overwrite><body>'
         footer = f'</body></Save><Activate><Name>{macro_name}</Name></Activate></Macro><Runtime><Restart command=\'True\'></Restart></Runtime></Macros></Command>'
         with open(filename) as macro:
@@ -703,11 +710,11 @@ class AuthenticationError(Exception):
         # limit the error to 200 chars
         msg = f"Authentication to {codec.device_name} ({codec.ip}) unsuccesful\nSTATUS: {session.status_code}\nBODY:\n{session.text}"
         logging.warning(msg)
-        print(msg[:200])
+        #print(msg[:200])
 
 class GeneralError(Exception):
     def __init__(self, codec, error):
         # limit the error to 200 chars
         msg = f"WARNING!\n\tCodec: {codec.device_name}\n\tIP: {codec.ip}\n\tIssue: {error}"
         logging.warning(msg)
-        print(msg[:200])
+        #print(msg[:200])
