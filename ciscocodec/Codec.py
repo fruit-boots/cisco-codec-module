@@ -296,6 +296,11 @@ class Codec:
                                 return False
                         if 'cec' in d.keys():
                             return False
+                        if 'name' in d.keys():
+                            if d['name'] == '':
+                                return False
+                            else:
+                                return True
                         else:
                             return True
                     device_list = list(filter(_device_filter, device_info))
@@ -320,12 +325,12 @@ class Codec:
             self.number_of_panels = 0
             for device in devices:
                 try:
-                    device_type = device.type.text
+                    name = device.find('name').text
                 except AttributeError:
                     # only way to skip
                     pass
                 else:
-                    if device_type == "TouchPanel":
+                    if name == "Cisco TelePresence Touch":
                         if device.status.text == "Connected":
                             self.number_of_panels += 1
             if self.number_of_panels == 0:
