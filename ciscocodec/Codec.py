@@ -41,7 +41,7 @@ class Codec:
         self.number_of_extensions = None
         self.extension_details = None
         self.cdp = None
-        self.timeout = 10
+        self.timeout = 20
 
 
     def get_attributes(self, all=False):
@@ -283,21 +283,30 @@ class Codec:
             raise GeneralError(self, e)
         else:
             devices = soup.find_all("connecteddevice")
-            try:
-                device_info = {device.find('name').text:{tag.name:tag.get_text() for tag in device if tag.name != None} for device in devices if device.find('name') != None}
-                # cisco's XML returns blank name's sometimes...
-                if '' in device_info.keys():
-                    device_info.pop('')
-            except Exception as e:
-                raise GeneralError(self, f"Issue in trying to create list within connected_devices()\n{e}")
-            else:
-                if device_info == {}:
-                    return
+            if len(devices) > 0:
+                try:
+                    device_info = [{tag.name:tag.get_text() for tag in device if isinstance(tag, bs4.element.Tag)} for device in devices]
+                except Exception as e:
+                    raise GeneralError(self, f"Issue in trying to create list within connected_devices()\n{e}")    
                 else:
-                    self.connected_devices = device_info
-                    return device_info
-        return
-    
+                    # cisco's XML returns random blank devices
+                    def _device_filter(d):
+                        if 'screensize' in d.keys():
+                            if d['screensize'] == '-1':
+                                return False
+                        if 'cec' in d.keys():
+                            return False
+                        else:
+                            return True
+                    device_list = list(filter(_device_filter, device_info))
+                    if len(device_list) == 0:
+                        self.connected_devices = None
+                        return
+                    self.connected_devices = device_list
+                    return device_list
+            else:
+                return
+                
     def get_number_of_panels(self):
         """ Updates total connected Touch10's. """
         if self.status_xml is None:
@@ -387,6 +396,7 @@ class Codec:
                 self.serial_numbers = serials
                 return serials
             else:
+                self.serial_number = None
                 return
                 
     def get_sip_uri(self):
