@@ -36,13 +36,6 @@ codec.get_sw_version()
 codec.get_device_type()
 codec.get_cdp()
 
-""" Make some backups """
-codec.export_status(f'testing/codec_backups/{codec.device_name}')
-codec.export_configuration(f'testing/codec_backups/{codec.device_name}')
-codec.export_extensions(f"testing/codec_backups/{codec.device_name}")
-codec.export_macros(f"testing/codec_backups/{codec.device_name}")
-
-
 """ Set some settings """
 codec.enable_macros('off')
 codec.enable_macros('on')
