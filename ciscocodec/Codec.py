@@ -12,7 +12,7 @@ Written by Adam Bruneau - bruneau.adam@bcg.com. Special thanks to Scott Thorton.
 
 class Codec:
     """ Interact with Cisco Codecs via XMLAPI. Instatiate class with a minimum dictionary containing ip, user, pass """
-    def __init__(self, ip='xxx.xxx.xxx.xxx', user='admin', password='******', device_name='device_name'):
+    def __init__(self, ip='000.000.000.000', user='admin', password='******', device_name='device_name'):
         self.ip = ip
         self.user = user
         self.password = password
@@ -157,7 +157,7 @@ class Codec:
                 new_cookie = self.get_session_cookie()
                 xml = requests.get(url, headers=new_cookie,verify=False, timeout=self.timeout)
                 if xml.status_code == 401:
-                    raise AuthenticationError(self)
+                    raise AuthenticationError(self, xml)
                 if xml.status_code == 200:
                     return xml
                 if xml.status_code != 200:
@@ -174,8 +174,7 @@ class Codec:
                     return xml
                 else:
                     raise GeneralError(self, "Issue in getting XML response.")
-            
-
+                    
     def put_xml(self, payload):
         """ Returns a request object when called directly. Use .content method to see the xml """
         if not isinstance(self.session_cookie, dict):
@@ -198,7 +197,7 @@ class Codec:
                 new_cookie['Content-Type'] = 'text/xml'
                 xml = requests.post(url, headers=new_cookie, data=payload, verify=False, timeout=self.timeout)
                 if xml.status_code == 401:
-                    raise AuthenticationError(self)
+                    raise AuthenticationError(self, xml)
                 if xml.status_code == 200:
                     return xml
                 if xml.status_code != 200:
@@ -537,6 +536,7 @@ class Codec:
                 return
     
     def get_extensions(self):
+        """ Returns a list containing dicts with keys "panel_id" and "xml" """
         # !! uses 'xml' parser vs 'lxml' !! #
         ext = self.put_xml('<Command><UserInterface><Extensions><List/></Extensions></UserInterface></Command>')
         try:
@@ -544,57 +544,33 @@ class Codec:
         except Exception as e:
             raise GeneralError(self, e)
         else:
-            exts = soup.find_all("PanelId")
+            exts = soup.find_all("Panel")
             if len(exts)> 0:
-                try:
-                    self.extension_details = str(soup.Extensions)
-                except Exception as e:
-                    raise GeneralError(self, e)
-                else:
-                    self.number_of_extensions = len(exts)
-                    return self.extension_details
+                version = soup.find("Version").text
+                header = f'<Extensions><Version>{version}</Version>\n'
+                footer = '</Extensions>'
+                # xml return does not format the text chars for upload properly.
+                # See encode/decode line in list comprehension.
+                self.extension_details = [{"panel_id":ext.find("PanelId").text,"xml":header+str(ext).encode("ascii", "xmlcharrefreplace").decode()+footer} for ext in exts]
+                self.number_of_extensions = len(self.extension_details)
+                return self.extension_details
             else:
                 self.extension_details = None
                 return
-               
-    def export_macros(self, folder):
-        if self.macro_details is not None:
-            if not os.path.exists(folder):
-                os.makedirs(folder)
-            for items in self.macro_details:
-                with open(f'{folder}/{items["name"]}.js','w+') as output:
-                    output.write(items['code'])
-            return True
-        else:
-            return "No macro details available"
                 
-    def export_extensions(self, folder):
-        if self.extension_details is not None:
-            if not os.path.exists(folder):
-                os.makedirs(folder)        
-            with open(f'{folder}/extensions.xml','w+') as output:
-                output.write(self.extension_details)
-            return True
+    def get_configuration_backup(self):
+        """ Returns a string of the configuration to be used in a backup.zip """
+        if self.password_verified == False:
+            raise GeneralError(self, "Password has not been verified!")
+        auth = requests.auth.HTTPBasicAuth(self.user,self.password)
+        try:
+            r = requests.get(f'http://{self.ip}/api/backup/load_config', auth=auth, verify=False, timeout=self.timeout)
+        except requests.exceptions.ConnectionError as e:
+            raise GeneralError(self, f"HTTP GET Request Failed!\n{e}")
         else:
-            return "No extension details available"
- 
-    def export_configuration(self, folder): 
-        if self.configuration_xml is None:
-            return "No configuration to export"
-        if not os.path.exists(folder):
-            os.makedirs(folder)
-        with open(f"{folder}/configuration.xml", 'w+') as file:
-            file.write(self.configuration_xml)
-        return True
-    
-    def export_status(self, folder):
-        if self.status_xml is None:
-            return "No status xml to export"
-        if not os.path.exists(folder):
-            os.makedirs(folder)
-        with open(f"{folder}/status.xml", 'w+') as file:
-            file.write(self.status_xml)
-        return True
+            configuration = eval(r.content.decode())['config'].replace('xConfiguration ','')
+            return configuration
+        return      
 
     def upload_macro(self, filename, macro_name):
         """ Macro name can only contain "_" or "-" in macro name, no "." """
