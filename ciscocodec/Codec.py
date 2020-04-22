@@ -42,6 +42,7 @@ class Codec:
         self.extension_details = None
         self.cdp = None
         self.timeout = 20
+        self.backup = False
 
 
     def get_attributes(self, all=False):
@@ -633,7 +634,7 @@ class Codec:
             else:
                 return
         else:
-            raise GeneralError(self, "Mode must be either on or off")
+            return "Mode must be either on or off"
             
     def delete_macro(self, name):
         p = self.put_xml(f'<?xml version="1.0"?><Command><Macros><Macro><Remove><Name>{name}</Name></Remove></Macro></Macros></Command>')
