@@ -5,6 +5,8 @@ import datetime
 import logging
 import time
 import os
+import re
+
 """
 Written by Adam Bruneau - bruneau.adam@bcg.com. Special thanks to Scott Thorton.
 
@@ -175,17 +177,19 @@ class Codec:
                     return xml
                 else:
                     raise GeneralError(self, "Issue in getting XML response.")
-                    
+
     def put_xml(self, payload):
         """ Returns a request object when called directly. Use .content method to see the xml """
         if not isinstance(self.session_cookie, dict):
             raise GeneralError(self, "No session cookie avaiable!")
-        # copy the cookie because we don't want to alter the stored one
-        header=self.session_cookie.copy()
-        header['Content-Type'] = 'text/xml'
-        url = f'http://{self.ip}/putxml' 
+        url = f'http://{self.ip}/putxml'
+        # format inner xml to HTML escape
+        if "<body>" in payload.lower():
+            original_body = re.search(r"<body>(.*)</body>", payload, re.DOTALL | re.IGNORECASE).group(1)
+            sub = re.sub(r'<.*>', lambda match: match.group().replace('<','&lt;').replace('>','&gt;') ,original_body)
+            payload = payload.replace(original_body, sub)
         try:
-            xml = requests.post(url, headers=header, data=payload, verify=False, timeout=self.timeout)
+            xml = requests.post(url, headers=self.session_cookie, data=payload, verify=False, timeout=self.timeout)
         except requests.exceptions.ConnectionError as e:
              raise GeneralError(self, f"HTTP POST Request Failed!\n{e}")
         else:
@@ -194,9 +198,8 @@ class Codec:
             if xml.status_code == 401 and self.password_verified == True:
                 print("Attempting to get another cookie")
                 # calling get_session_cookie() will store the new cookie in the object as well.
-                new_cookie = self.get_session_cookie().copy() # Again, make a copy so to not alter the object attribute
-                new_cookie['Content-Type'] = 'text/xml'
-                xml = requests.post(url, headers=new_cookie, data=payload, verify=False, timeout=self.timeout)
+                self.get_session_cookie()
+                xml = requests.post(url, headers=self.session_cookie, data=payload, verify=False, timeout=self.timeout)
                 if xml.status_code == 401:
                     raise AuthenticationError(self, xml)
                 if xml.status_code == 200:
@@ -577,7 +580,7 @@ class Codec:
         """ Macro name can only contain "_" or "-" in macro name, no "." """
         if not os.path.exists(filename):
             raise GeneralError(self, f"No file exists! > {filename}")
-        if " " in macro_name or "." in macro_name.rstrip('.js'):
+        if " " in macro_name or "." in macro_name:
             raise GeneralError(self, "Cannot export a macro with illegal characters (spaces or periods)")
         header = f'<?xml version="1.0"?><Command><Macros><Macro><Save><Name>{macro_name}</Name><Overwrite>False</Overwrite><body>'
         footer = f'</body></Save><Activate><Name>{macro_name}</Name></Activate></Macro><Runtime><Restart command=\'True\'></Restart></Runtime></Macros></Command>'
@@ -604,8 +607,6 @@ class Codec:
         soup = bs4.BeautifulSoup(raw, 'xml')
         panel = str(soup.PanelId) # <PanelId>panel_id</PanelId>
         raw = raw.replace(panel,'')
-        raw = raw.replace('<','&lt;')
-        raw = raw.replace('>','&gt;')
         header = f'<?xml version="1.0"?>\n<Command>\n<UserInterface>\n<Extensions>\n<Panel>\n<Save>\n{panel}\n<body>\n'
         footer = '</body>\n</Save>\n</Panel>\n</Extensions>\n</UserInterface>\n</Command>'
         payload = header + raw + footer
