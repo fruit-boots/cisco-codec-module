@@ -13,7 +13,7 @@ Written by Adam Bruneau - bruneau.adam@bcg.com. Special thanks to Scott Thorton.
 """
 
 class Codec:
-    """ Interact with Cisco Codecs via XMLAPI. Instatiate class with a minimum dictionary containing ip, user, pass """
+    """ Interact with Cisco Codecs via XMLAPI """
     def __init__(self, ip='000.000.000.000', user='admin', password='******', device_name='device_name'):
         self.ip = ip
         self.user = user
