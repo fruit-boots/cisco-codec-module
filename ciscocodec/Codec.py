@@ -50,8 +50,8 @@ class Codec:
     def get_attributes(self, all=False):
         """ Setting all = True will include XML, extension, and Macro details. """
         # show the codec attributes of the codec
-        # copy it instead of directly changing it because it will alter the object attributes
         
+        # copy it instead of directly changing it because it will alter the object attributes
         items = self.__dict__.copy()
 
         if not all:
@@ -79,7 +79,6 @@ class Codec:
         if preserve_cookie == False:
             self.session_cookie = None
         return self.get_attributes('all')
-
 
     def get_session_cookie(self):
         """ Tries to get a session cookie. If HTTPS only, it will set the mode to HTTP/HTTPS """
@@ -156,7 +155,7 @@ class Codec:
             self.online = True
             # try getting another cookie if 401
             if xml.status_code == 401 and self.password_verified == True:
-                print("Attempting to get another cookie")
+                print(f"Attempting to get another cookie for {self.device_name}")
                 new_cookie = self.get_session_cookie()
                 xml = requests.get(url, headers=new_cookie,verify=False, timeout=self.timeout)
                 if xml.status_code == 401:
@@ -186,7 +185,7 @@ class Codec:
         # format inner xml to HTML escape
         if "<body>" in payload.lower():
             original_body = re.search(r"<body>(.*)</body>", payload, re.DOTALL | re.IGNORECASE).group(1)
-            sub = re.sub(r'<.*>', lambda match: match.group().replace('<','&lt;').replace('>','&gt;') ,original_body)
+            sub = re.sub(r'<|>', lambda match: match.group().replace('<','&lt;').replace('>','&gt;') ,original_body)
             payload = payload.replace(original_body, sub)
         try:
             xml = requests.post(url, headers=self.session_cookie, data=payload, verify=False, timeout=self.timeout)
@@ -196,7 +195,7 @@ class Codec:
             self.online = True
             # try getting another cookie if 401
             if xml.status_code == 401 and self.password_verified == True:
-                print("Attempting to get another cookie")
+                print(f"Attempting to get another cookie for {self.device_name}")
                 # calling get_session_cookie() will store the new cookie in the object as well.
                 self.get_session_cookie()
                 xml = requests.post(url, headers=self.session_cookie, data=payload, verify=False, timeout=self.timeout)
@@ -210,9 +209,8 @@ class Codec:
                 return xml
             else:
                 print(f"Attempting to get another cookie for {self.device_name}")
-                new_cookie = self.get_session_cookie().copy() # Again, make a copy so to not alter the object attribute
-                new_cookie['Content-Type'] = 'text/xml'
-                xml = requests.post(url, headers=new_cookie, data=payload, verify=False, timeout=self.timeout)
+                self.get_session_cookie()
+                xml = requests.post(url, headers=self.session_cookie, data=payload, verify=False, timeout=self.timeout)
                 if xml.content.decode().startswith('<?xml'):
                     return xml
                 else:
@@ -509,7 +507,7 @@ class Codec:
                 self.macros_autostart = False
             return self.macros_autostart
 
-    def get_macro_details(self, zoom_macro_name='zoom_dial_v0_3_1'):
+    def get_macro_details(self, zoom_macro_name='zoom_dial_v0-6'):
         # !! uses 'xml' parser vs 'lxml' !! #
         get_macros = self.put_xml('<Command><Macros><Macro><Get/></Macro></Macros></Command>')
         try:
@@ -636,6 +634,20 @@ class Codec:
                 return
         else:
             return "Mode must be either on or off"
+    
+    def set_macros_autostart(self, mode='on'):
+        if mode in ['on','off']:
+            p = self.put_xml(f'<?xml version="1.0"?><Configuration><Macros><Autostart>{mode}</Autostart></Macros></Configuration>')
+            if "Success" in p.content.decode():
+                if mode == 'on':
+                    self.macros_enabled = True
+                else:
+                    self.macros_enabled = False
+                return True
+            else:
+                return
+        else:
+            return "Mode must be either on or off"
             
     def delete_macro(self, name):
         p = self.put_xml(f'<?xml version="1.0"?><Command><Macros><Macro><Remove><Name>{name}</Name></Remove></Macro></Macros></Command>')
@@ -693,6 +705,19 @@ class Codec:
                 return
             else:
                 return err
+    
+    def restore_backup(self, backup):
+        url = f"http://{self.ip}/api/provisioning"
+        auth = requests.auth.HTTPBasicAuth(self.user, self.password)
+        header = {'Content-Type': 'application/x-www-form-urlencoded'}
+        with open(backup, 'rb') as file:
+            p = requests.post(url, auth=auth, data=file)
+        if p.status_code == 200:
+            return True
+        else:
+            return
+             
+            
 
 #--- Error Handling ---#
 # i know... it needs work
