@@ -27,7 +27,6 @@ class Codec:
         self.sip = None
         self.online = False
         self.session_cookie = None
-        self.http_secure = None
         self.password_verified = None
         self.macros_enabled = None
         self.macros_autostart = None
@@ -55,7 +54,7 @@ class Codec:
         items = self.__dict__.copy()
 
         if not all:
-            [items.pop(key) for key in ['status_xml','configuration_xml','macro_details','extension_details','http_secure','timeout']]
+            [items.pop(key) for key in ['status_xml','configuration_xml','macro_details','extension_details','timeout']]
         return items
         
     def set_attributes(self, dictionary, overwrite=False, preserve_cookie=False):
@@ -81,10 +80,10 @@ class Codec:
         return self.get_attributes('all')
 
     def get_session_cookie(self):
-        """ Tries to get a session cookie. If HTTPS only, it will set the mode to HTTP/HTTPS """
+        """ Tries to get a session cookie. """
         auth = requests.auth.HTTPBasicAuth(self.user, self.password)
         try:
-            session = requests.post(f'http://{self.ip}/xmlapi/session/begin',auth=auth, verify=False, timeout=self.timeout)
+            session = requests.post(f'https://{self.ip}/xmlapi/session/begin',auth=auth, verify=False, timeout=self.timeout)
         except requests.exceptions.ConnectionError as e:
             raise GeneralError(self, f"Cookie Request Failed.\n{e}")
         else:
@@ -93,30 +92,15 @@ class Codec:
             if session.status_code == 204:
                 self.password_verified = True
                 try:
-                    self.session_cookie = {'Cookie':'SessionId={}'.format(session.cookies['SessionId'])}
+                    self.session_cookie=session.cookies.get_dict()
                 except KeyError:
-                    # try to set the http mode if https
-                    if session.url.startswith('https'):
-                        self.http_secure = True
-                        self.set_http_mode()
-                        for x in range(5):
-                            # once the setting has changed, you need to wait for it to stick
-                            time.sleep(3)
-                            retry = requests.post(f'http://{self.ip}/xmlapi/session/begin',auth=auth, verify=False, timeout=self.timeout)
-                            try:
-                                self.session_cookie = {'Cookie':'SessionId={}'.format(retry.cookies['SessionId'])}
-                            except KeyError:
-                                continue
-                            else:
-                                self.http_secure = False
-                                break
+                    raise GeneralError(self,f"Issue when opening session for Cookie: {self.session_cookie}\n{e}")
                 else:
-                    self.http_secure = False
                     return self.session_cookie
             if session.status_code == 200:
                 self.password_verified = True
                 self.session_cookie = None
-                raise GeneralError(self, "HTTP request successful, but no cookie in response")
+                raise GeneralError(self, "https request successful, but no cookie in response")
             if session.status_code == 401:
                 self.password_verified = False
                 self.session_cookie = None
@@ -128,7 +112,7 @@ class Codec:
         """ Returns True if succesfull """
         if isinstance(self.session_cookie, dict):
             try:
-                session = requests.post(f'http://{self.ip}/xmlapi/session/end', headers=self.session_cookie,verify=False, timeout=self.timeout)
+                session = requests.post(f'https://{self.ip}/xmlapi/session/end', cookies=self.session_cookie,verify=False, timeout=self.timeout)
             except requests.exceptions.ConnectionError as e:
                 raise GeneralError(self, f"Issue when closing session for Cookie: {self.session_cookie['Cookie']}\n{e}")
             else:
@@ -146,18 +130,18 @@ class Codec:
         """ Returns a request object when called directly. Use .content method to see the xml """
         if not isinstance(self.session_cookie, dict):
             raise GeneralError(self, "No session cookie available!")
-        url = f'http://{self.ip}/{query}'      
+        url = f'https://{self.ip}/{query}'      
         try:
-            xml = requests.get(url, headers=self.session_cookie,verify=False, timeout=self.timeout)
+            xml = requests.get(url, cookies=self.session_cookie,verify=False, timeout=self.timeout)
         except requests.exceptions.ConnectionError as e:
-            raise GeneralError(self, f"HTTP GET Request Failed!\n{e}")
+            raise GeneralError(self, f"https GET Request Failed!\n{e}")
         else:
             self.online = True
             # try getting another cookie if 401
             if xml.status_code == 401 and self.password_verified == True:
                 print(f"Attempting to get another cookie for {self.device_name}")
                 new_cookie = self.get_session_cookie()
-                xml = requests.get(url, headers=new_cookie,verify=False, timeout=self.timeout)
+                xml = requests.get(url, cookies=new_cookie,verify=False, timeout=self.timeout)
                 if xml.status_code == 401:
                     raise AuthenticationError(self, xml)
                 if xml.status_code == 200:
@@ -171,7 +155,7 @@ class Codec:
             else:
                 print(f"Attempting to get another cookie for {self.device_name}")
                 new_cookie = self.get_session_cookie()
-                xml = requests.get(url, headers=new_cookie,verify=False, timeout=self.timeout)
+                xml = requests.get(url, cookies=new_cookie,verify=False, timeout=self.timeout)
                 if xml.content.decode().startswith('<?xml'):
                     return xml
                 else:
@@ -181,16 +165,16 @@ class Codec:
         """ Returns a request object when called directly. Use .content method to see the xml """
         if not isinstance(self.session_cookie, dict):
             raise GeneralError(self, "No session cookie avaiable!")
-        url = f'http://{self.ip}/putxml'
+        url = f'https://{self.ip}/putxml'
         # format inner xml to HTML escape
         if "<body>" in payload.lower():
             original_body = re.search(r"<body>(.*)</body>", payload, re.DOTALL | re.IGNORECASE).group(1)
             sub = re.sub(r'<|>', lambda match: match.group().replace('<','&lt;').replace('>','&gt;') ,original_body)
             payload = payload.replace(original_body, sub)
         try:
-            xml = requests.post(url, headers=self.session_cookie, data=payload, verify=False, timeout=self.timeout)
+            xml = requests.post(url, cookies=self.session_cookie, data=payload, verify=False, timeout=self.timeout)
         except requests.exceptions.ConnectionError as e:
-             raise GeneralError(self, f"HTTP POST Request Failed!\n{e}")
+             raise GeneralError(self, f"https POST Request Failed!\n{e}")
         else:
             self.online = True
             # try getting another cookie if 401
@@ -198,7 +182,7 @@ class Codec:
                 print(f"Attempting to get another cookie for {self.device_name}")
                 # calling get_session_cookie() will store the new cookie in the object as well.
                 self.get_session_cookie()
-                xml = requests.post(url, headers=self.session_cookie, data=payload, verify=False, timeout=self.timeout)
+                xml = requests.post(url, cookies=self.session_cookie, data=payload, verify=False, timeout=self.timeout)
                 if xml.status_code == 401:
                     raise AuthenticationError(self, xml)
                 if xml.status_code == 200:
@@ -210,7 +194,7 @@ class Codec:
             else:
                 print(f"Attempting to get another cookie for {self.device_name}")
                 self.get_session_cookie()
-                xml = requests.post(url, headers=self.session_cookie, data=payload, verify=False, timeout=self.timeout)
+                xml = requests.post(url, cookies=self.session_cookie, data=payload, verify=False, timeout=self.timeout)
                 if xml.content.decode().startswith('<?xml'):
                     return xml
                 else:
@@ -233,25 +217,25 @@ class Codec:
         else:
             raise GeneralError(self, f"Configuration XML did not get returned correctly\n{r.content.decode()}")
         return r
-
+    '''
     def set_http_mode(self, secure=False):
         """ Returns True if succesfull """
         if secure:
-            mode = '<Configuration><NetworkServices><HTTP><Mode>HTTPS</Mode></HTTP></NetworkServices></Configuration>'
+            mode = '<Configuration><NetworkServices><https><Mode>HTTPS</Mode></https></NetworkServices></Configuration>'
         else:
-            mode= '<Configuration><NetworkServices><HTTP><Mode>HTTP+HTTPS</Mode></HTTP></NetworkServices></Configuration>'
+            mode= '<Configuration><NetworkServices><https><Mode>https+HTTPS</Mode></https></NetworkServices></Configuration>'
         auth = requests.auth.HTTPBasicAuth(self.user, self.password)
         try:
             r = requests.post(f"https://{self.ip}/putxml", data=mode, auth=auth, verify=False, timeout=self.timeout)
         except requests.exceptions.ConnectionError as e:
-            raise GeneralError(self, f"HTTP mode change failed!\n{e}")
+            raise GeneralError(self, f"https mode change failed!\n{e}")
         else:
             soup = bs4.BeautifulSoup(r.content.decode(), 'lxml')
             if "<Success/>" in r.content.decode():
                 return True
             else:
                 return
-     
+    '''     
     # Below are some methods that will parse the status and config xml
     # This is much faster than trying to do XMLAPI calls for each item in question
     
@@ -507,7 +491,7 @@ class Codec:
                 self.macros_autostart = False
             return self.macros_autostart
 
-    def get_macro_details(self, zoom_macro_name='zoom_dial_v0-6'):
+    def get_macro_details(self, zoom_macro_name='zoom_dial_v0-7'):
         # !! uses 'xml' parser vs 'lxml' !! #
         get_macros = self.put_xml('<Command><Macros><Macro><Get/></Macro></Macros></Command>')
         try:
@@ -535,6 +519,7 @@ class Codec:
                     return self.macro_details
             else:
                 self.macro_details = None
+                self.has_zoom_button = False
                 return
     
     def get_extensions(self):
@@ -566,9 +551,9 @@ class Codec:
             raise GeneralError(self, "Password has not been verified!")
         auth = requests.auth.HTTPBasicAuth(self.user,self.password)
         try:
-            r = requests.get(f'http://{self.ip}/api/backup/load_config', auth=auth, verify=False, timeout=self.timeout)
+            r = requests.get(f'https://{self.ip}/api/backup/load_config', auth=auth, verify=False, timeout=self.timeout)
         except requests.exceptions.ConnectionError as e:
-            raise GeneralError(self, f"HTTP GET Request Failed!\n{e}")
+            raise GeneralError(self, f"https GET Request Failed!\n{e}")
         else:
             configuration = eval(r.content.decode())['config'].replace('xConfiguration ','')
             return configuration
@@ -707,7 +692,7 @@ class Codec:
                 return err
     
     def restore_backup(self, backup):
-        url = f"http://{self.ip}/api/provisioning"
+        url = f"https://{self.ip}/api/provisioning"
         auth = requests.auth.HTTPBasicAuth(self.user, self.password)
         header = {'Content-Type': 'application/x-www-form-urlencoded'}
         with open(backup, 'rb') as file:
