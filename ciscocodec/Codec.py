@@ -7,10 +7,14 @@ import time
 import os
 import re
 
+
 """
 Written by Adam Bruneau - bruneau.adam@bcg.com. Special thanks to Scott Thorton.
 
 """
+
+# get rid of pesky warnings
+requests.packages.urllib3.disable_warnings()
 
 class Codec:
     """ Interact with Cisco Codecs via XMLAPI """
@@ -30,7 +34,7 @@ class Codec:
         self.password_verified = None
         self.macros_enabled = None
         self.macros_autostart = None
-        self.number_of_macros = None
+        self.macro_names = None
         self.macro_details = None
         self.has_zoom_button = None
         self.number_of_panels = None
@@ -85,7 +89,8 @@ class Codec:
         try:
             session = requests.post(f'https://{self.ip}/xmlapi/session/begin',auth=auth, verify=False, timeout=self.timeout)
         except requests.exceptions.ConnectionError as e:
-            raise GeneralError(self, f"Cookie Request Failed.\n{e}")
+            self.online = False
+            raise GeneralError(self, f"HTTP Request Failed.\n{e}")
         else:
             self.online = True
             # Set a flag for password, store the cookie
@@ -506,7 +511,7 @@ class Codec:
                 except Exception as e:
                     raise GeneralError(self, e)
                 else:
-                    self.number_of_macros = len(self.macro_details)
+                    self.macro_names = [mac['name'] for mac in self.macro_details]
                     for macro in self.macro_details:
                         macro_code = self.put_xml(f'<Command><Macros><Macro><Get><Name>{macro["name"]}</Name><Content>True</Content></Get></Macro></Macros></Command>')
                         try:
