@@ -50,14 +50,14 @@ class Codec:
         self.backup = False
 
 
-    def get_attributes(self, attrs):
+    def get_attributes(self, all=False):
         """ Setting all = True will include XML, extension, and Macro details. """
         # show the codec attributes of the codec
         
         # copy it instead of directly changing it because it will alter the object attributes
         items = self.__dict__.copy()
 
-        if attrs != 'all':
+        if not all:
             [items.pop(key) for key in ['status_xml','configuration_xml','macro_details','extension_details','timeout']]
         return items
         
@@ -204,23 +204,6 @@ class Codec:
                     return xml
                 else:
                     raise GeneralError(self, "Issue in getting XML response.")
-    def create_user(self, username, password, role):
-        payload = f'''<Command><UserManagement><User><Add>
-        <Active>True</Active>
-        <PassphraseChangeRequired>False</PassphraseChangeRequired>
-        <Passphrase>{password}</Passphrase>
-        <Role>{role}</Role>
-        <YourPassphrase>{self.password}</YourPassphrase>
-        <Username>{username}</Username>
-        </Add></User></UserManagement></Command>'''
-        return self.put_xml(payload).content.decode()
-
-    def delete_user(self, username):
-        payload = f'''<Command><UserManagement><User><Delete>
-        <YourPassphrase>{self.password}</YourPassphrase>
-        <Username>{username}</Username>
-        </Delete></User></UserManagement></Command>'''
-        return self.put_xml(payload).content.decode()
 
     def get_status_xml(self):
         """ Returns a request object when called directly. Use .content method to see the xml """

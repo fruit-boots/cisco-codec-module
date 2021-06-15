@@ -18,8 +18,11 @@ codec.set_attributes({'ip': '192.168.1.63', 'user': 'demo', 'password': 'BOSvcC1
 """
 
 """ Gather codec information """
-codec = ciscocodec.Codec(ip='192.168.1.63', user='demo',password='BOSvcC1sco!',device_name='abruneau')
+#! -- CHANGE THESE VALUES -- !#
+codec = ciscocodec.Codec(ip='192.168.1.2', user='user',password='password',device_name='bruins')
+# get cookie to make calls
 codec.get_session_cookie()
+
 
 codec.get_status_xml()
 codec.get_configuration_xml()
@@ -36,18 +39,18 @@ codec.get_sw_version()
 codec.get_device_type()
 codec.get_cdp()
 
-""" Set some settings """
+#-- Set some settings
 codec.enable_macros('off')
 codec.enable_macros('on')
 
-""" Upload some extensions and macros """
+#-- Upload some extensions and macros
 codec.upload_macro('upload_files/zoom_dial_v0.3.1.js','zoom_dial_v0_3_1')
 codec.upload_extension('upload_files/roomcontrolconfig.xml')
 print('\nuploaded\n')
 print(codec.extension_details)
 print(codec.macro_details)
 
-""" Delete macros and extensions """
+#-- Delete macros and extensions
 # delete by name for macro, and by id for extensions
 codec.delete_macro(codec.macro_details[0]['name'])
 # OR codec.delete_all_macros()
@@ -56,6 +59,9 @@ codec.delete_extension(codec.extension_details[0]['id'])
 print("\ndeleted first entry in macros and extensions\n")
 print(codec.extension_details)
 print(codec.macro_details)
+# close session
+codec.close_session()
+"""
 
-# !! Make sure to close session !! #
+
 
