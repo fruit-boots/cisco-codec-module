@@ -7,8 +7,6 @@ Example of setiing up a codec from scratch.
 codec = ciscocodec.Codec(ip='192.168.1.63', user='demo',password='BOSvcC1sco!',device_name='abruneau')
 
 Example of importing attributes to an object
-
-codec = ciscocodec.Codec()
 codec.set_attributes({'ip': '192.168.1.63', 'user': 'demo', 'password': 'BOSvcC1sco!', 'device_name': 'BOS.Home.Adam.Bruneau'})
 
 """
@@ -18,7 +16,7 @@ ip = input('Enter IP: ')
 user = input('Enter admin username: ')
 password = input('Enter admin password')
 
-codec = Codec(ip, user, password)
+codec = ciscocodec.Codec(ip, user, password)
 # get cookie to make calls
 codec.get_cookie()
 
