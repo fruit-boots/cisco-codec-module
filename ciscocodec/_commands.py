@@ -22,6 +22,7 @@ def get_codec_details(self):
 
 def upload_macro(self, filename, macro_name):
     if not self.macro_capable:
+        raise Exception("Device is unable to use macros")
     # Macro name can only contain "_" or "-" in macro name, no "."
     if not os.path.exists(filename):
         raise Exception(f"No file exists! > {filename}")
@@ -48,6 +49,8 @@ def upload_macro(self, filename, macro_name):
             raise Exception(f'Error from {self.ip} -> {err}')
 
 def delete_macro(self, name):
+    if not self.macro_capable:
+        raise Exception("Device is unable to use macros")
     p = self.post(f'<?xml version="1.0"?><Command><Macros><Macro><Remove><Name>{name}</Name></Remove></Macro></Macros></Command>')
     soup = bs4.BeautifulSoup(p,'lxml')
     if soup.macroremoveresult.get('status') == 'OK':
@@ -126,6 +129,8 @@ def delete_user(self, username):
 # -- Macro Setting Commands -- #
 
 def enable_macros(self, mode='on'):
+    if not self.macro_capable:
+        raise Exception("Device is unable to use macros")
     if mode in ['on','off']:
         p = self.post(f'<?xml version="1.0"?><Configuration><Macros><Mode>{mode}</Mode></Macros></Configuration>')
         if "Success" in p:
@@ -140,6 +145,8 @@ def enable_macros(self, mode='on'):
         raise Exception("Mode must be either `on` or `off`")
 
 def enable_autostart(self, mode='on'):
+    if not self.macro_capable:
+        raise Exception("Device is unable to use macros")
     if mode in ['on','off']:
         p = self.put_xml(f'<?xml version="1.0"?><Configuration><Macros><Autostart>{mode}</Autostart></Macros></Configuration>')
         if "Success" in p:
@@ -220,6 +227,8 @@ def _get_macro_details(obj):
             obj.macro_details = None
             obj.macro_names = None
         return (obj.macro_names, obj.macro_details)
+
+# -- Extension parsing -- #
 
 def _get_extensions(obj):
     """ Returns a list containing dicts with keys "panel_id" and "xml" """
