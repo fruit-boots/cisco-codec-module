@@ -14,7 +14,6 @@ codec.set_attributes({'ip': '192.168.1.63', 'user': 'demo', 'password': 'BOSvcC1
 """
 
 """ Gather codec information """
-#! -- CHANGE THESE VALUES -- !#
 ip = input('Enter IP: ')
 user = input('Enter admin username: ')
 password = input('Enter admin password')
