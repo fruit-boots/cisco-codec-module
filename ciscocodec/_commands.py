@@ -15,7 +15,6 @@ def get_codec_details(self):
     _get_extensions(self)
     return self.get_attributes()
 
-
 # -- Upload/Delete -- #
 
 def upload_macro(self, filename, macro_name):
