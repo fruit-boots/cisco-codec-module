@@ -20,6 +20,7 @@ class Codec(object):
         self.session_cookie = None
         self.sw_version = None
         self.device_type = None
+        self.device_name = None
         self.online = False
         self.password_verified = None
         self.macros_enabled = None
