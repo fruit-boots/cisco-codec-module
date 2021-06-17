@@ -164,7 +164,7 @@ def _get_macros_enabled(obj):
     try:
         macros = soup.find("macros").mode.text
     except AttributeError:
-        raise Exception("Could not find macros attribute in config xml")
+        raise Exception("Could not find macros enabled in config xml")
     else:
         if macros == 'On':
             obj.macros_enabled = True
@@ -201,7 +201,7 @@ def _get_macro_details(obj):
             try:
                 obj.macro_details = [{'name':macro.find('Name').text, 'enabled': eval(macro.Active.text)} for macro in macros]
             except Exception as e:
-                raise Exception(f'Issue parsing XML -> {e}')
+                raise Exception(f'Issue parsing XML for macro details -> {e}')
             else:
                 obj.macro_names = [mac['name'] for mac in obj.macro_details]
                 for macro in obj.macro_details:
@@ -209,8 +209,9 @@ def _get_macro_details(obj):
                     try:
                         soup = bs4.BeautifulSoup(macro_code, features='xml')
                     except Exception as e:
-                        raise Exception(f'Issue parsing XML -> {e}')
-                    macro['code'] = soup.Content.text
+                        raise Exception(f'Issue parsing XML for macro {macro["name"]}-> {e}')
+                    else:
+                        macro['code'] = soup.Content.text
         else:
             obj.macro_details = None
             obj.macro_names = None
@@ -223,7 +224,7 @@ def _get_extensions(obj):
     try:
         soup = bs4.BeautifulSoup(ext, features='xml')
     except Exception as e:
-        raise Exception(f'Issue parsing XML -> {e}')
+        raise Exception(f'Issue parsing XML for Extension details -> {e}')
     else:
         exts = soup.find_all("Panel")
         if len(exts)> 0:
@@ -245,7 +246,7 @@ def _get_device_name(obj):
     try:
         soup = bs4.BeautifulSoup(obj.status_xml, features='lxml')
     except Exception as e:
-        raise Exception(f"Issue trying to parse status XML -> {e}")
+        raise Exception(f"Issue trying to parse status XML for device name -> {e}")
     else:
         try:
             name = soup.userinterface.find('name').text
@@ -258,7 +259,7 @@ def _get_number_of_panels(obj):
     try:
         soup = bs4.BeautifulSoup(obj.status_xml, features='lxml')
     except Exception as e:
-        raise Exception(f"Issue trying to parse status XML -> {e}")
+        raise Exception(f"Issue trying to parse status XML for number of panels -> {e}")
     else:
         devices = soup.find_all("connecteddevice")
         obj.number_of_panels = 0
@@ -279,7 +280,7 @@ def _get_sw_version(obj):
     try:
         soup = bs4.BeautifulSoup(obj.status_xml, features='lxml')
     except Exception as e:
-        raise Exception(f"Issue trying to parse status XML -> {e}")
+        raise Exception(f"Issue trying to parse status XML for software version -> {e}")
     try:
         sw = soup.find("systemunit").software.version.text
     except AttributeError:
@@ -292,7 +293,7 @@ def _get_device_type(obj):
     try:
         soup = bs4.BeautifulSoup(obj.status_xml, features='lxml')
     except Exception as e:
-        raise Exception(f"Issue trying to parse status XML -> {e}")
+        raise Exception(f"Issue trying to parse status XML for device type -> {e}")
     try:
         hw = soup.find("systemunit").productid.text
     except AttributeError:
