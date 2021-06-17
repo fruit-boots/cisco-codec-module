@@ -1,25 +1,25 @@
 import bs4
 import os
 
-def get_config(self):
-    self.configuration_xml = self.get('configuration.xml')
-    _get_macros_enabled(self)
-    _get_macros_autostart(self)
-    _get_macro_details(self)
-    _get_extensions(self)
-    return self.configuration_xml
-
-def get_status(self):
+def get_codec_details(self):
     self.status_xml = self.get('status.xml')
     _get_device_name(self)
     _get_number_of_panels(self)
     _get_sw_version(self)
     _get_device_type(self)
-    return self.status_xml
+    self.configuration_xml = self.get('configuration.xml')
+    if self.macro_capable:
+        _get_macros_enabled(self)
+        _get_macros_autostart(self)
+        _get_macro_details(self)
+    _get_extensions(self)
+    return self.get_attributes()
+
 
 # -- Upload/Delete -- #
 
 def upload_macro(self, filename, macro_name):
+    if not self.macro_capable:
     # Macro name can only contain "_" or "-" in macro name, no "."
     if not os.path.exists(filename):
         raise Exception(f"No file exists! > {filename}")
@@ -155,6 +155,8 @@ def enable_autostart(self, mode='on'):
 # ---- PRIVATE METHODS ---- #
 
 # -- configuration XML parsing -- #
+
+# -- Macro Parsing -- #
 
 def _get_macros_enabled(obj):
     try:
@@ -300,3 +302,7 @@ def _get_device_type(obj):
        return
     else:
         obj.device_type = hw
+        if obj.device_type == 'Cisco TelePresence SX10':
+            obj.macro_capable = False
+        else:
+            obj.macro_capable = True

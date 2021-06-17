@@ -13,25 +13,26 @@ class Codec(object):
         self.ip = ip
         self.user = user
         self.password = password
-
+        
+        
         # defaults
-        self.configuration_xml = None
-        self.timeout = 10
-        self.session_cookie = None
-        self.sw_version = None
-        self.device_type = None
-        self.device_name = None
         self.online = False
         self.password_verified = None
+        self.device_name = None
+        self.device_type = None
+        self.sw_version = None
+        self.macro_capable = None
         self.macros_enabled = None
         self.macros_autostart = None
         self.macro_names = None
         self.macro_details = None
         self.number_of_panels = None
         self.number_of_extensions = None
-        self.status_xml = None
-        self.number_of_extensions = None
         self.extension_details = None
+        self.session_cookie = None
+        self.configuration_xml = None
+        self.status_xml = None
+        self.timeout = 10
         
     def get_attributes(self,detailed=False):      
         # copy it instead of directly changing it because it will alter the object attributes
