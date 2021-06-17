@@ -2,11 +2,14 @@ import bs4
 import os
 
 def get_codec_details(self):
+    # status xml parsing
     self.status_xml = self.get('status.xml')
     _get_device_name(self)
     _get_number_of_panels(self)
     _get_sw_version(self)
     _get_device_type(self)
+    _get_macro_capable(self)
+    # config xml parsing
     self.configuration_xml = self.get('configuration.xml')
     if self.macro_capable:
         _get_macros_enabled(self)
@@ -301,6 +304,8 @@ def _get_device_type(obj):
        return
     else:
         obj.device_type = hw
+
+def _get_macro_capable(obj):
         if obj.device_type == 'Cisco TelePresence SX10':
             obj.macro_capable = False
         else:
