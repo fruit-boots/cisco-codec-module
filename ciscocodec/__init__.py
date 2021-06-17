@@ -2,7 +2,7 @@ import socket
 
 class Codec(object):
 
-    from ._commands import get_config, get_status
+    from ._commands import get_codec_details
     from ._commands import upload_macro, delete_macro
     from ._commands import upload_extension, delete_extension
     from ._commands import create_user, delete_user
