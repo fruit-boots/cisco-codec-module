@@ -14,7 +14,6 @@ class Codec(object):
         self.user = user
         self.password = password
         
-        
         # defaults
         self.online = False
         self.password_verified = None
