@@ -16,7 +16,7 @@ class Codec(object):
 
         # defaults
         self.configuration_xml = None
-        self.timeout = 20
+        self.timeout = 10
         self.session_cookie = None
         self.sw_version = None
         self.device_type = None
