@@ -1,4 +1,4 @@
-import ciscocodec
+from ciscocodec import Codec
 
 """
 
@@ -18,7 +18,7 @@ ip = input('Enter IP: ')
 user = input('Enter admin username: ')
 password = input('Enter admin password')
 
-codec = ciscocodec(ip, user, password)
+codec = Codec(ip, user, password)
 # get cookie to make calls
 codec.get_cookie()
 
