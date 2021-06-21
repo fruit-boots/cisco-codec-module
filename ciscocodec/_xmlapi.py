@@ -101,7 +101,7 @@ class CookieExpired(Exception):
     def __init__(self, web_request, message="Cookie is expired, run .get_cookie() to get a new one"):
         self.web_request = web_request
         self.message = message
-        super()__init__(self.message)
+        super().__init__(self.message)
 
     def __str__(self):
         return f"First 15 characters of response `{web_request[15]}` -> {self.message}"
