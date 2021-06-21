@@ -248,10 +248,8 @@ def _get_extensions(obj):
             # See encode/decode line in list comprehension.
             obj.extension_details = [{"panel_id":ext.find("PanelId").text,"xml":header+str(ext).encode("ascii", "xmlcharrefreplace").decode()+footer} for ext in exts]
             obj.number_of_extensions = len(obj.extension_details)
-            return obj.extension_details
         else:
             obj.extension_details = None
-            return
 
 # -- Status XML parsing -- #
 
