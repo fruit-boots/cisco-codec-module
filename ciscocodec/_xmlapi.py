@@ -102,9 +102,7 @@ class CookieExpired(Exception):
         self.web_request = web_request
         self.message = message
         super().__init__(self.message)
-
     def __str__(self):
-        return f"First 15 characters of response `{web_request[15]}` -> {self.message}"
-        
+        return f"First 15 characters of response: `{self.web_request[15]}` -> {self.message}"        
         
         
