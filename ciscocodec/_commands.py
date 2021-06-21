@@ -313,7 +313,7 @@ def _get_device_type(obj):
         obj.device_type = hw
 
 def _get_macro_capable(obj):
-        if obj.device_type == 'Cisco TelePresence SX10':
+        if obj.device_type == 'Cisco TelePresence SX10' or obj.sw_version.startswith('ce8') or obj.sw_version.startswith('TC7'):
             obj.macro_capable = False
         else:
             obj.macro_capable = True
