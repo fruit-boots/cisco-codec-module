@@ -55,3 +55,4 @@ class Codec(object):
             s.close()
             self.online = True
         return self.online
+

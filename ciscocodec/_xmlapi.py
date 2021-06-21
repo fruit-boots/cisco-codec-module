@@ -19,7 +19,11 @@ def get(self, uri):
         if r.status_code != 200:
             raise Exception(f"Issue with api call -> {r.content.decode()}")
         else:
-            return r.content.decode()
+            response = r.content.decode()
+            if response.startswith("<!DOCTYPE html>"):
+                raise CookieExpired(response)
+            else:
+                return response
         
 def post(self, payload):
     """ Returns XML content from device """
@@ -38,7 +42,11 @@ def post(self, payload):
         if r.status_code != 200:
             raise Exception(f"Issue with api call -> {r.content.decode()}")
         else:
-            return r.content.decode()
+            response = r.content.decode()
+            if response.startswith("<!DOCTYPE html>"):
+                raise CookieExpired(response)
+            else:
+                return response
 
 def get_cookie(self):
     auth = requests.auth.HTTPBasicAuth(self.user, self.password)
@@ -87,3 +95,16 @@ def close_session(self):
                 raise Exception(f"Something went wrong when closing the session.\n{session.content.decode()}")
     else:
         return "No cookie to be found"
+
+# Error handling
+class CookieExpired(Exception):
+    def __init__(self, web_request, message="Cookie is expired, run .get_cookie() to get a new one"):
+        self.web_request = web_request
+        self.message = message
+        super()__init__(self.message)
+
+    def __str__(self):
+        return f"First 15 characters of response `{web_request[15]}` -> {self.message}"
+        
+        
+        
