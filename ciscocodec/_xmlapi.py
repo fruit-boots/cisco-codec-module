@@ -21,7 +21,7 @@ def get(self, uri):
         else:
             response = r.content.decode()
             if response.startswith("<!DOCTYPE html>"):
-                raise CookieExpired(response)
+                raise CookieExpired()
             else:
                 return response
         
@@ -98,11 +98,12 @@ def close_session(self):
 
 # Error handling
 class CookieExpired(Exception):
-    def __init__(self, web_request, message="Cookie is expired, run .get_cookie() to get a new one"):
-        self.web_request = web_request
+
+    def __init__(self, message="Cookie is expired, run .get_cookie() to get a new one"):
         self.message = message
         super().__init__(self.message)
+
     def __str__(self):
-        return f"First 15 characters of response: `{self.web_request[15]}` -> {self.message}"        
+        return f"{self.message}"        
         
         
