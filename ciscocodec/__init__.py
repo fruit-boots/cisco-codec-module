@@ -8,7 +8,7 @@ class Codec(object):
     from ._commands import create_user, delete_user
     from ._commands import enable_macros, enable_autostart
     from ._xmlapi import get, post, get_cookie, close_session
-    
+
     def __init__(self, ip, user, password):
         self.ip = ip
         self.user = user
@@ -55,4 +55,15 @@ class Codec(object):
             s.close()
             self.online = True
         return self.online
+
+# Error handling
+class CookieExpired(Exception):
+
+    def __init__(self, message="Cookie is expired, run .get_cookie() to get a new one"):
+        self.message = message
+        super().__init__(self.message)
+
+    def __str__(self):
+        return f"{self.message}"  
+
 
