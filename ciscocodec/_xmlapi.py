@@ -5,7 +5,7 @@ requests.packages.urllib3.disable_warnings()
 
 def get(self, uri):
     if self.session_cookie is None:
-        raise Exception("No cookie available, run .get_session_cookie()")
+        raise Exception("No cookie available, run .get_cookie()")
     url = f'https://{self.ip}/{uri}'
     try:
         r = requests.get(url, cookies=self.session_cookie,verify=False, timeout=self.timeout)
@@ -24,7 +24,7 @@ def get(self, uri):
 def post(self, payload):
     """ Returns XML content from device """
     if self.session_cookie is None:
-        raise Exception("No cookie available, run .get_session_cookie()")
+        raise Exception("No cookie available, run .get_cookie()")
     url = f'https://{self.ip}/putxml'
     try:
         r = requests.post(url, cookies=self.session_cookie, data=payload, verify=False, timeout=self.timeout)
