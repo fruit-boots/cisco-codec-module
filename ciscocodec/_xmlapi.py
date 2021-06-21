@@ -71,6 +71,7 @@ def get_cookie(self):
         elif session.status_code == 200:
             self.password_verified = False
             self.session_cookie = None
+            self.macro_capable = False
             raise Exception(f"https request successful, but no cookie in response")
         elif session.status_code == 401:
             self.password_verified = False
