@@ -21,7 +21,7 @@ def get(self, uri):
         else:
             response = r.content.decode()
             if response.startswith("<!DOCTYPE html>"):
-                raise ciscocodec.CookieExpired()
+                raise CookieExpired()
             else:
                 return response
         
@@ -44,7 +44,7 @@ def post(self, payload):
         else:
             response = r.content.decode()
             if response.startswith("<!DOCTYPE html>"):
-                raise ciscocodec.CookieExpired()
+                raise CookieExpired(response)
             else:
                 return response
 
@@ -96,3 +96,15 @@ def close_session(self):
                 raise Exception(f"Something went wrong when closing the session.\n{session.content.decode()}")
     else:
         return "No cookie to be found"
+
+# Error handling
+class CookieExpired(Exception):
+
+    def __init__(self, message="Cookie is expired, run .get_cookie() to get a new one"):
+        self.message = message
+        super().__init__(self.message)
+
+    def __str__(self):
+        return f"{self.message}"        
+        
+        
