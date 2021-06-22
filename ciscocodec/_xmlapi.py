@@ -84,8 +84,12 @@ def close_session(self):
     if self.session_cookie is not None:
         try:
             session = requests.post(f'https://{self.ip}/xmlapi/session/end', cookies=self.session_cookie,verify=False, timeout=self.timeout)
+        except requests.exceptions.ConnectTimeout as e:
+            self.online=False
+            raise Exception(f"{self.ip} appears to be offline! -> {e}")    
         except requests.exceptions.ConnectionError as e:
-            raise Exception(f"Issue when closing session for Cookie: {self.session_cookie['Cookie']}->{e}")
+            self.online = False
+            raise Exception(f"{self.ip} connection error -> {e}")
         else:
             self.session_cookie = None
             if session.status_code == 204:
