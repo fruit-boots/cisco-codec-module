@@ -109,6 +109,7 @@ def delete_extension(self, panelid):
 # -- User Commands -- #
 
 def create_user(self, username, password, role):
+    """ Roles : Admin/Audit/Integrator/RoomControl/User """
     payload = f'''<Command><UserManagement><User><Add>
     <Active>True</Active>
     <PassphraseChangeRequired>False</PassphraseChangeRequired>
