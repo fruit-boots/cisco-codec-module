@@ -99,7 +99,7 @@ def close_session(self):
             else:
                 raise Exception(f"Something went wrong when closing the session.\n{session.content.decode()}")
     else:
-        return "No cookie to be found"
+        return "Codec does not have a cookie"
 
 # Error handling
 class CookieExpired(Exception):
