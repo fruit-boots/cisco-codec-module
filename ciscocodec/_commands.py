@@ -136,6 +136,7 @@ def add_user(self, username, password, role):
         else:
             if err == "User already exists.":
                 _get_users(self)
+                return err
             else:
                 raise Exception(f'Error from {self.ip} -> {err}')
 
@@ -160,6 +161,7 @@ def delete_user(self, username):
         else:
             if err == f"User '{username}' does not exist.":
                 _get_users(self)
+                return err
             else:
                 raise Exception(f'Error from {self.ip} -> {err}'))
 
