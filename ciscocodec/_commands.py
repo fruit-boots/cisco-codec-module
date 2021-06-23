@@ -118,6 +118,7 @@ def create_user(self, username, password, role):
     <YourPassphrase>{self.password}</YourPassphrase>
     <Username>{username}</Username>
     </Add></User></UserManagement></Command>'''
+    p = self.post(payload)
     try:
         soup = bs4.BeautifulSoup(p,'lxml')
     except Exception as e:
@@ -137,6 +138,7 @@ def delete_user(self, username):
     <YourPassphrase>{self.password}</YourPassphrase>
     <Username>{username}</Username>
     </Delete></User></UserManagement></Command>'''
+    p = self.post(payload)
     try:
         soup = bs4.BeautifulSoup(p,'lxml')
     except Exception as e:
