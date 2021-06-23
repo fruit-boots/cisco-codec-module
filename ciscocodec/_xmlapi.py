@@ -55,7 +55,7 @@ def post(self, payload):
                 start = response.find('<XPath>')
                 end = response.find('</XPath>')
                 command = response[start+7:end]#add 7 for <Xpath>
-                raise Exception(f"Codec does not support this command -> {response}")
+                raise Exception(f"Codec does not support this command -> {command}")
             elif response == '<?xml version="1.0"?>\n<Command/>\n':
                 raise Exception(f"Codec returned null value for -> {payload}")
             else:
