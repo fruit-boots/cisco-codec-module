@@ -108,6 +108,27 @@ def delete_extension(self, panelid):
 
 # -- User Commands -- #
 
+def get_users(self):
+    payload = f'''<Command><UserManagement><User><List>
+    </List></User></UserManagement></Command>'''
+    p = self.post(payload)
+    try:
+        soup = bs4.BeautifulSoup(p,'lxml')
+    except Exception as e:
+        raise Exception(f'Issue parsing XML -> {e}')
+    if soup.userlistresult.get('status') == 'OK':
+        all_users = soup.find_all('user')
+        self.users = [{'username':user.username.text,'role':soup.role.text,'active':soup.active.text} for user in all_users]
+        return self.users
+    else:
+        try:
+            err = soup.command.reason.text
+        except AttributeError:
+            raise Exception(f'Error not found -> {err}')
+        else:
+            raise Exception(f'Error from {self.ip} -> {err}')
+    
+
 def create_user(self, username, password, role):
     """ Roles : Admin/Audit/Integrator/RoomControl/User """
     payload = f'''<Command><UserManagement><User><Add>
