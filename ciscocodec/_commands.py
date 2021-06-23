@@ -134,7 +134,10 @@ def add_user(self, username, password, role):
         except AttributeError:
             raise Exception(f'Error not found -> {err}')
         else:
-            raise Exception(f'Error from {self.ip} -> {err}')
+            if err == "User already exists.":
+                _get_users(self)
+            else:
+                raise Exception(f'Error from {self.ip} -> {err}')
 
 def delete_user(self, username):
     payload = f'''<Command><UserManagement><User><Delete>
@@ -155,7 +158,10 @@ def delete_user(self, username):
         except AttributeError:
             raise Exception(f'Error not found -> {err}')
         else:
-            raise Exception(f'Error from {self.ip} -> {err}')
+            if err == f"User '{username}' does not exist.":
+                _get_users(self)
+            else:
+                raise Exception(f'Error from {self.ip} -> {err}'))
 
 # -- Macro Setting Commands -- #
 
@@ -195,8 +201,8 @@ def enable_autostart(self, mode='on'):
 # ---- PRIVATE METHODS ---- #
 
 def _get_users(obj):
-    users = []
-    payload = f'<Command><UserManagement><User><List></List></User></UserManagement></Command>'
+    payload = f'''<Command><UserManagement><User><List>
+    </List></User></UserManagement></Command>'''
     p = obj.post(payload)
     try:
         soup = bs4.BeautifulSoup(p,'lxml')
@@ -204,12 +210,7 @@ def _get_users(obj):
         raise Exception(f'Issue parsing XML -> {e}')
     if soup.userlistresult.get('status') == 'OK':
         all_users = soup.find_all('user')
-        for user in all_users:
-            roles = []
-            for role in user.find_all('roles'):
-                roles.append(role.text.replace('\n',''))
-            users.append({'username':user.username.text,'roles':roles,'active':eval(soup.active.text)})
-        obj.users = users
+        obj.users = [{'username':user.username.text,'role':soup.role.text,'active':soup.active.text} for user in all_users]
     else:
         try:
             err = soup.command.reason.text
