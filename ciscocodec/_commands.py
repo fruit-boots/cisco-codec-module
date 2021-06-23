@@ -16,6 +16,8 @@ def get_codec_details(self):
         _get_macros_autostart(self)
         _get_macro_details(self)
     _get_extensions(self)
+    # user details
+    _get_users(self)
     return self.get_attributes()
 
 # -- Upload/Delete -- #
@@ -108,27 +110,6 @@ def delete_extension(self, panelid):
 
 # -- User Commands -- #
 
-def get_users(self):
-    payload = f'''<Command><UserManagement><User><List>
-    </List></User></UserManagement></Command>'''
-    p = self.post(payload)
-    try:
-        soup = bs4.BeautifulSoup(p,'lxml')
-    except Exception as e:
-        raise Exception(f'Issue parsing XML -> {e}')
-    if soup.userlistresult.get('status') == 'OK':
-        all_users = soup.find_all('user')
-        self.users = [{'username':user.username.text,'role':soup.role.text,'active':soup.active.text} for user in all_users]
-        return self.users
-    else:
-        try:
-            err = soup.command.reason.text
-        except AttributeError:
-            raise Exception(f'Error not found -> {err}')
-        else:
-            raise Exception(f'Error from {self.ip} -> {err}')
-    
-
 def create_user(self, username, password, role):
     """ Roles : Admin/Audit/Integrator/RoomControl/User """
     payload = f'''<Command><UserManagement><User><Add>
@@ -145,6 +126,7 @@ def create_user(self, username, password, role):
     except Exception as e:
         raise Exception(f'Issue parsing XML -> {e}')
     if soup.useraddresult.get('status') == 'OK':
+        _get_users(self)
         return True
     else:
         try:
@@ -165,6 +147,7 @@ def delete_user(self, username):
     except Exception as e:
         raise Exception(f'Issue parsing XML -> {e}')
     if soup.userdeleteresult.get('status') == 'OK':
+        _get_users(self)
         return True
     else:
         try:
@@ -211,6 +194,25 @@ def enable_autostart(self, mode='on'):
 
 # ---- PRIVATE METHODS ---- #
 
+def _get_users(obj):
+    payload = f'''<Command><UserManagement><User><List>
+    </List></User></UserManagement></Command>'''
+    p = obj.post(payload)
+    try:
+        soup = bs4.BeautifulSoup(p,'lxml')
+    except Exception as e:
+        raise Exception(f'Issue parsing XML -> {e}')
+    if soup.userlistresult.get('status') == 'OK':
+        all_users = soup.find_all('user')
+        obj.users = [{'username':user.username.text,'role':soup.role.text,'active':soup.active.text} for user in all_users]
+    else:
+        try:
+            err = soup.command.reason.text
+        except AttributeError:
+            raise Exception(f'Error not found -> {err}')
+        else:
+            raise Exception(f'Error from {self.ip} -> {err}')
+
 # -- configuration XML parsing -- #
 
 # -- Macro Parsing -- #
@@ -229,7 +231,6 @@ def _get_macros_enabled(obj):
             obj.macros_enabled = True
         if macros == 'Off':
             obj.macros_enabled = False
-    return obj.macros_enabled
 
 def _get_macros_autostart(obj):
     try:
@@ -245,7 +246,6 @@ def _get_macros_autostart(obj):
             obj.macros_autostart = True
         if macros_autostart == 'Off':
             obj.macros_autostart = False
-        return obj.macros_autostart
 
 def _get_macro_details(obj):
     # !! uses 'xml' parser vs 'lxml' !! #
@@ -274,7 +274,6 @@ def _get_macro_details(obj):
         else:
             obj.macro_details = None
             obj.macro_names = None
-        return (obj.macro_names, obj.macro_details)
 
 # -- Extension parsing -- #
 

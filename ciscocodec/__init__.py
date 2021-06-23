@@ -5,7 +5,7 @@ class Codec(object):
     from ._commands import get_codec_details
     from ._commands import upload_macro, delete_macro
     from ._commands import upload_extension, delete_extension
-    from ._commands import get_users, add_user, delete_user
+    from ._commands import add_user, delete_user
     from ._commands import enable_macros, enable_autostart
     from ._xmlapi import get, post, get_cookie, close_session
     
@@ -20,6 +20,7 @@ class Codec(object):
         self.device_name = None
         self.device_type = None
         self.sw_version = None
+        self.users = None
         self.macro_capable = None
         self.macros_enabled = None
         self.macros_autostart = None
