@@ -224,7 +224,7 @@ def _get_users(obj):
         except AttributeError:
             raise Exception(f'Error not found -> {err}')
         else:
-            raise Exception(f'Error from {self.ip} -> {err}'
+            raise Exception(f'Error from {self.ip} -> {err}')
 
 # -- configuration XML parsing -- #
 
