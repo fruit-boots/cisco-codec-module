@@ -52,7 +52,12 @@ def post(self, payload):
             if response.startswith("<!DOCTYPE html>"):
                 raise CookieExpired(response)
             elif response.find('<Reason>Unknown command</Reason>') != -1:
-                raise Exception("Codec does not support this command")
+                start = response.find('<XPath>')
+                end = response.find('</XPath>')
+                command = response[start+7:end]#add 7 for <Xpath>
+                raise Exception(f"Codec does not support this command -> {response}")
+            elif response == '<?xml version="1.0"?>\n<Command/>\n':
+                raise Exception(f"Codec returned null value for -> {payload}")
             else:
                 return response
 

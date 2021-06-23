@@ -204,7 +204,7 @@ def enable_autostart(self, mode='on'):
 
 def _get_users(obj):
     users = []
-    payload = f'<Command><UserManagement><User><List></List></User></UserManagement></Command>'
+    payload = '<Command><UserManagement><User><List></List></User></UserManagement></Command>'
     p = obj.post(payload)
     try:
         soup = bs4.BeautifulSoup(p,'lxml')
