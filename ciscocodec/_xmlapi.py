@@ -17,7 +17,10 @@ def get(self, uri):
     else:
         self.online = True
         if r.status_code != 200:
-            raise Exception(f"Issue with api call -> {r.content.decode()}")
+            if r.status_code == 404:
+                raise Exception(f"uri `{uri}` not found!")
+            else:    
+                raise Exception(f"Issue with api call -> {r.content.decode()}")
         else:
             response = r.content.decode()
             if response.startswith("<!DOCTYPE html>"):
@@ -40,7 +43,10 @@ def post(self, payload):
     else:
         self.online = True
         if r.status_code != 200:
-            raise Exception(f"Issue with api call -> {r.content.decode()}")
+            if r.status_code == 404:
+                raise Exception(f"uri `{uri}` not found!")
+            else:    
+                raise Exception(f"Issue with api call -> {r.content.decode()}")
         else:
             response = r.content.decode()
             if response.startswith("<!DOCTYPE html>"):
