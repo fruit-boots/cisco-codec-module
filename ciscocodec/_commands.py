@@ -201,8 +201,8 @@ def enable_autostart(self, mode='on'):
 # ---- PRIVATE METHODS ---- #
 
 def _get_users(obj):
-    payload = f'''<Command><UserManagement><User><List>
-    </List></User></UserManagement></Command>'''
+    users = []
+    payload = f'<Command><UserManagement><User><List></List></User></UserManagement></Command>'
     p = obj.post(payload)
     try:
         soup = bs4.BeautifulSoup(p,'lxml')
@@ -210,14 +210,19 @@ def _get_users(obj):
         raise Exception(f'Issue parsing XML -> {e}')
     if soup.userlistresult.get('status') == 'OK':
         all_users = soup.find_all('user')
-        obj.users = [{'username':user.username.text,'role':soup.role.text,'active':soup.active.text} for user in all_users]
+        for user in all_users:
+            roles = []
+            for role in user.find_all('roles'):
+                roles.append(role.text.replace('\n',''))
+            users.append({'username':user.username.text,'roles':roles,'active':eval(soup.active.text)})
+        obj.users = users
     else:
         try:
             err = soup.command.reason.text
         except AttributeError:
             raise Exception(f'Error not found -> {err}')
         else:
-            raise Exception(f'Error from {self.ip} -> {err}')
+            raise Exception(f'Error from {self.ip} -> {err}'
 
 # -- configuration XML parsing -- #
 
