@@ -130,8 +130,7 @@ def create_user(self, username, password, role):
         except AttributeError:
             raise Exception(f'Error not found -> {err}')
         else:
-            raise Exception(f'Error from {self.ip} -> {err}'
-        return False
+            raise Exception(f'Error from {self.ip} -> {err}')
 
 def delete_user(self, username):
     payload = f'''<Command><UserManagement><User><Delete>
@@ -150,8 +149,7 @@ def delete_user(self, username):
         except AttributeError:
             raise Exception(f'Error not found -> {err}')
         else:
-            raise Exception(f'Error from {self.ip} -> {err}'
-        return False
+            raise Exception(f'Error from {self.ip} -> {err}')
 
 # -- Macro Setting Commands -- #
 
