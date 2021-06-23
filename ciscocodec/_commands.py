@@ -118,14 +118,40 @@ def create_user(self, username, password, role):
     <YourPassphrase>{self.password}</YourPassphrase>
     <Username>{username}</Username>
     </Add></User></UserManagement></Command>'''
-    return self.post(payload)
+    try:
+        soup = bs4.BeautifulSoup(p,'lxml')
+    except Exception as e:
+        raise Exception(f'Issue parsing XML -> {e}')
+    if soup.useraddresult.get('status') == 'OK':
+        return True
+    else:
+        try:
+            err = soup.command.reason.text
+        except AttributeError:
+            raise Exception(f'Error not found -> {err}')
+        else:
+            raise Exception(f'Error from {self.ip} -> {err}'
+        return False
 
 def delete_user(self, username):
     payload = f'''<Command><UserManagement><User><Delete>
     <YourPassphrase>{self.password}</YourPassphrase>
     <Username>{username}</Username>
     </Delete></User></UserManagement></Command>'''
-    return self.post(payload)
+    try:
+        soup = bs4.BeautifulSoup(p,'lxml')
+    except Exception as e:
+        raise Exception(f'Issue parsing XML -> {e}')
+    if soup.userdeleteresult.get('status') == 'OK':
+        return True
+    else:
+        try:
+            err = soup.command.reason.text
+        except AttributeError:
+            raise Exception(f'Error not found -> {err}')
+        else:
+            raise Exception(f'Error from {self.ip} -> {err}'
+        return False
 
 # -- Macro Setting Commands -- #
 
