@@ -163,7 +163,7 @@ def delete_user(self, username):
                 _get_users(self)
                 return err
             else:
-                raise Exception(f'Error from {self.ip} -> {err}'))
+                raise Exception(f'Error from {self.ip} -> {err}')
 
 # -- Macro Setting Commands -- #
 
