@@ -51,6 +51,8 @@ def post(self, payload):
             response = r.content.decode()
             if response.startswith("<!DOCTYPE html>"):
                 raise CookieExpired(response)
+            elif response.find('<Reason>Unknown command</Reason>') != -1:
+                raise Exception("Codec does not support this command")
             else:
                 return response
 
