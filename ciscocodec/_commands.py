@@ -209,7 +209,7 @@ def _get_users(obj):
             for role in user.find_all('roles'):
                 roles.append(role.text.replace('\n',''))
             users.append({'username':user.username.text,'roles':roles,'active':soup.active.text})
-        self.users = users
+        obj.users = users
     else:
         try:
             err = soup.command.reason.text
