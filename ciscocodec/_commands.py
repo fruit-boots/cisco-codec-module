@@ -208,7 +208,7 @@ def _get_users(obj):
             roles = []
             for role in user.find_all('roles'):
                 roles.append(role.text.replace('\n',''))
-            users.append({'username':user.username.text,'roles':roles,'active':soup.active.text})
+            users.append({'username':user.username.text,'roles':roles,'active':eval(soup.active.text}))
         obj.users = users
     else:
         try:
