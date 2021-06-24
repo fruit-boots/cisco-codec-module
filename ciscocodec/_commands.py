@@ -379,13 +379,19 @@ def _get_sip_uri(obj):
     except Exception as e:
         raise Exception(f"Issue trying to parse status XML for address -> {e}")
     else:
+        # ridiculous non standard xml tags...
         try:
             uri = soup.find("sip").primary.uri.text
         except AttributeError:
             try:
                 uri = soup.find('registration').uri.text
             except AttributeError:
-                raise Exception("Could not find 'sip uri' in status XML")
+                try:
+                    uri = soup.find('contactinfo').number.text
+                except AttributeError:
+                    raise Exception("Could not find 'sip uri' in status XML")
+                else:
+                    obj.sip_uri = uri
             else:
                 obj.sip_uri = uri
         else:
