@@ -169,7 +169,7 @@ def delete_user(self, username):
 
 def enable_macros(self, mode='on'):
     if not self.macro_capable:
-        raise Exception("Device is unable to use macros")
+        return "Device is unable to use macros"
     if mode in ['on','off']:
         p = self.post(f'<?xml version="1.0"?><Configuration><Macros><Mode>{mode}</Mode></Macros></Configuration>')
         if "Success" in p:
@@ -185,7 +185,7 @@ def enable_macros(self, mode='on'):
 
 def enable_autostart(self, mode='on'):
     if not self.macro_capable:
-        raise Exception("Device is unable to use macros")
+        return "Device is unable to use macros"
     if mode in ['on','off']:
         p = self.put_xml(f'<?xml version="1.0"?><Configuration><Macros><Autostart>{mode}</Autostart></Macros></Configuration>')
         if "Success" in p:
