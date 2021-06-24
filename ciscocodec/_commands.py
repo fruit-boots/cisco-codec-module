@@ -382,7 +382,12 @@ def _get_sip_uri(obj):
         try:
             uri = soup.find("sip").primary.uri.text
         except AttributeError:
-            raise Exception("Could not find 'name' in status XML")
+            try:
+                uri = soup.find('registration').uri.text
+            except AttributeError:
+                raise Exception("Could not find 'sip uri' in status XML")
+            else:
+                obj.sip_uri = uri
         else:
             obj.sip_uri = uri
 
