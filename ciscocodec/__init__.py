@@ -20,6 +20,7 @@ class Codec(object):
         self.device_name = None
         self.device_type = None
         self.sw_version = None
+        self.sip_uri = None
         self.users = None
         self.macro_capable = None
         self.macros_enabled = None
