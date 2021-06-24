@@ -20,7 +20,7 @@ def get_codec_details(self):
     _get_users(self)
     return self.get_attributes()
 
-# -- Upload/Delete -- #
+# -- Upload/Delete Macros and Extensions -- #
 
 def upload_macro(self, filename, macro_name):
     if not self.macro_capable:
@@ -134,7 +134,7 @@ def add_user(self, username, password, role):
         except AttributeError:
             raise Exception(f'Error not found -> {err}')
         else:
-            if err == "User already exists.":
+            if err == "User already exists":
                 _get_users(self)
                 return err
             else:
