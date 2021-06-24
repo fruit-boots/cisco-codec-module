@@ -134,7 +134,7 @@ def add_user(self, username, password, role):
         except AttributeError:
             raise Exception(f'Error not found -> {err}')
         else:
-            if err == "User already exists":
+            if err == "User already exists.":
                 _get_users(self)
                 return err
             else:
