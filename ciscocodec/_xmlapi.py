@@ -53,7 +53,7 @@ def post(self, payload):
         else:
             if response.startswith("<!DOCTYPE html>"):
                 raise CookieExpired(response)
-            elif response.find('<Reason>Unknown command</Reason>') != -1:
+            elif '<Reason>Unknown command</Reason>' in response:
                 start = response.find('<XPath>')
                 end = response.find('</XPath>')
                 command = response[start+7:end]#add 7 for <Xpath>

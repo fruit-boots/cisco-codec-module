@@ -134,7 +134,7 @@ def add_user(self, username, password, role):
         except AttributeError:
             raise Exception(f'Error not found -> {err}')
         else:
-            if err == "User already exists.":
+            if "User already exists" in err:
                 _get_users(self)
                 return err
             else:
@@ -159,7 +159,7 @@ def delete_user(self, username):
         except AttributeError:
             raise Exception(f'Error not found -> {err}')
         else:
-            if err == f"User '{username}' does not exist.":
+            if f"User '{username}' does not exist" in err:
                 _get_users(self)
                 return err
             else:
