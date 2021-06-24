@@ -9,6 +9,7 @@ def get_codec_details(self):
     _get_sw_version(self)
     _get_device_type(self)
     _get_macro_capable(self)
+    _get_sip_uri(self)
     # config xml parsing
     self.configuration_xml = self.get('configuration.xml')
     if self.macro_capable:
@@ -371,6 +372,21 @@ def _get_device_type(obj):
        return
     else:
         obj.device_type = hw
+
+def _get_sip_uri(obj):
+    try:
+        soup = bs4.BeautifulSoup(obj.status_xml, features='lxml')
+    except Exception as e:
+        raise Exception(f"Issue trying to parse status XML for address -> {e}")
+    else:
+        try:
+            uri = soup.find("sip").primary.uri.text
+        except AttributeError:
+            raise Exception("Could not find 'name' in status XML")
+        else:
+            obj.sip_uri = uri
+
+# -- hw/sw checker for macro capability
 
 def _get_macro_capable(obj):
         if obj.device_type == 'Cisco TelePresence SX10' or obj.sw_version.startswith('ce8') or obj.sw_version.startswith('TC7'):
