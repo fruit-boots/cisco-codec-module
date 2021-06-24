@@ -42,6 +42,7 @@ def post(self, payload):
          raise Exception(f"{self.ip} https POST request failed! -> {e}")
     else:
         self.online = True
+        response = r.content.decode()
         if r.status_code != 200:
             if r.status_code == 404:
                 raise Exception(f"uri `{uri}` not found!")
@@ -50,7 +51,6 @@ def post(self, payload):
             else:    
                 raise Exception(f"Issue with api call -> {r.content.decode()}")
         else:
-            response = r.content.decode()
             if response.startswith("<!DOCTYPE html>"):
                 raise CookieExpired(response)
             elif response.find('<Reason>Unknown command</Reason>') != -1:
