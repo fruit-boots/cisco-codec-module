@@ -45,6 +45,8 @@ def post(self, payload):
         if r.status_code != 200:
             if r.status_code == 404:
                 raise Exception(f"uri `{uri}` not found!")
+            elif r.status_code == 401 and self.password_verified:
+                raise CookieExpired(response)
             else:    
                 raise Exception(f"Issue with api call -> {r.content.decode()}")
         else:
