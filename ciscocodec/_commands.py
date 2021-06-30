@@ -28,8 +28,6 @@ def upload_macro(self, filename, macro_name):
         raise Exception("Unable to know if codec supports macros. Run `.update_codec_details()`")    
     elif not self.macro_capable:
         raise Exception("Device is unable to use macros")
-    elif self.macro_capable is None:
-        raise Exception("Unable to know if codec supports macros. Run `.update_codec_details()`")
     # Macro name can only contain "_" or "-" in macro name, no "."
     if not os.path.exists(filename):
         raise Exception(f"No file exists! > {filename}")
