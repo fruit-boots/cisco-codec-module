@@ -24,7 +24,9 @@ def get_codec_details(self):
 # -- Upload/Delete Macros and Extensions -- #
 
 def upload_macro(self, filename, macro_name):
-    if not self.macro_capable:
+    if self.macro_capable is None:
+        raise Exception("Unable to know if codec supports macros. Run `.update_codec_details()`")    
+    elif not self.macro_capable:
         raise Exception("Device is unable to use macros")
     elif self.macro_capable is None:
         raise Exception("Unable to know if codec supports macros. Run `.update_codec_details()`")
