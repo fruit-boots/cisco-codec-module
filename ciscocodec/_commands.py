@@ -26,6 +26,8 @@ def get_codec_details(self):
 def upload_macro(self, filename, macro_name):
     if not self.macro_capable:
         raise Exception("Device is unable to use macros")
+    elif self.macro_capable is None:
+        raise Exception("Unable to know if codec supports macros. Run `.update_codec_details()`")
     # Macro name can only contain "_" or "-" in macro name, no "."
     if not os.path.exists(filename):
         raise Exception(f"No file exists! > {filename}")
@@ -171,6 +173,8 @@ def delete_user(self, username):
 def enable_macros(self, mode='on'):
     if not self.macro_capable:
         return "Device is unable to use macros"
+    elif self.macro_capable is None:
+        raise Exception("Unable to know if codec supports macros. Run `.update_codec_details()`")
     if mode in ['on','off']:
         p = self.post(f'<?xml version="1.0"?><Configuration><Macros><Mode>{mode}</Mode></Macros></Configuration>')
         if "Success" in p:
@@ -187,6 +191,8 @@ def enable_macros(self, mode='on'):
 def enable_autostart(self, mode='on'):
     if not self.macro_capable:
         return "Device is unable to use macros"
+    elif self.macro_capable is None:
+        raise Exception("Unable to know if codec supports macros. Run `.update_codec_details()`")
     if mode in ['on','off']:
         p = self.put_xml(f'<?xml version="1.0"?><Configuration><Macros><Autostart>{mode}</Autostart></Macros></Configuration>')
         if "Success" in p:
