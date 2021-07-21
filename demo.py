@@ -14,7 +14,9 @@ Available commands:
 .post() - see XMLAPI documentation from cisco
 .enable_macros() - on/off
 .enable_autostart() - enables macros to start automatically
-.set_ntp() - mode can be set to Auto, Manual
+.set_ntp() - mode can be set to Auto, Manual, or Off.
+    When setting the mode to manual, you must specify the addresses of the NTP servers.
+    e.g. codec.set_ntp("Manual",addr1="192.168.1.1", addr2="192.168.50.1", addr3="192.168.100.1") 
 .upload_macro()
 .delete_macro()
 .upload_extension()
