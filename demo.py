@@ -14,6 +14,7 @@ Available commands:
 .post() - see XMLAPI documentation from cisco
 .enable_macros() - on/off
 .enable_autostart() - enables macros to start automatically
+.set_ntp() - mode can be set to Auto, Manual
 .upload_macro()
 .delete_macro()
 .upload_extension()
