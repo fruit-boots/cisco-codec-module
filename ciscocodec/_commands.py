@@ -208,33 +208,36 @@ def enable_autostart(self, mode='on'):
 
 # -- NTP Settings -- #
 
-def set_ntp(self, addr1, addr2, addr3):
-    payload = f"""<Configuration>
-    <NetworkServices>
-    <NTP>
-    <Mode valueSpaceRef="/Valuespace/TTPAR_AutoManualOff">Manual</Mode>
-    <Server item="1" maxOccurrence="3">
-    <Address valueSpaceRef="/Valuespace/STR_0_255_NoFilt">{addr1}</Address>
-    <Key valueSpaceRef="/Valuespace/PASSWORD_0_2045_NoFilt">***</Key>
-    <KeyAlgorithm valueSpaceRef="/Valuespace/TTPAR_NtpKeyAlgorithm">SHA256</KeyAlgorithm>
-    <KeyId valueSpaceRef="/Valuespace/STR_0_10_NoFilt"></KeyId>
-    </Server>
-    <Server item="2" maxOccurrence="3">
-    <Address valueSpaceRef="/Valuespace/STR_0_255_NoFilt">{addr2}</Address>
-    <Key valueSpaceRef="/Valuespace/PASSWORD_0_2045_NoFilt">***</Key>
-    <KeyAlgorithm valueSpaceRef="/Valuespace/TTPAR_NtpKeyAlgorithm">SHA256</KeyAlgorithm>
-    <KeyId valueSpaceRef="/Valuespace/STR_0_10_NoFilt"></KeyId>
-    </Server>
-    <Server item="3" maxOccurrence="3">
-    <Address valueSpaceRef="/Valuespace/STR_0_255_NoFilt">{addr3}</Address>
-    <Key valueSpaceRef="/Valuespace/PASSWORD_0_2045_NoFilt">***</Key>
-    <KeyAlgorithm valueSpaceRef="/Valuespace/TTPAR_NtpKeyAlgorithm">SHA256</KeyAlgorithm>
-    <KeyId valueSpaceRef="/Valuespace/STR_0_10_NoFilt"></KeyId>
-    </Server>
-    </NTP>
-    </NetworkServices>
-    </Configuration>"""
-    p = obj.post(payload)
+def set_ntp(self, mode, **addresses):
+    if mode not in ['Auto','Manual','Off']:
+        raise Exception("Mode must be 'Auto','Manual', or 'Off'")
+    else:
+        header = f"""<Configuration>
+        <NetworkServices>
+        <NTP>
+        <Mode valueSpaceRef="/Valuespace/TTPAR_AutoManualOff">{mode}</Mode>
+        """
+        body = ""
+        footer = """
+        </NTP>
+        </NetworkServices>
+        </Configuration>"""
+    if mode == 'Manual':
+        if len(addresses.values()) == 0:
+            raise Exception("Manual NTP requires addresses!")
+        else:
+            pos = 0
+            for addr in addresses.values():
+                pos +=1
+                body += f"""<Server item="{pos}" maxOccurrence="3">
+                <Address valueSpaceRef="/Valuespace/STR_0_255_NoFilt">{addr}</Address>
+                <Key valueSpaceRef="/Valuespace/PASSWORD_0_2045_NoFilt">***</Key>
+                <KeyAlgorithm valueSpaceRef="/Valuespace/TTPAR_NtpKeyAlgorithm">SHA256</KeyAlgorithm>
+                <KeyId valueSpaceRef="/Valuespace/STR_0_10_NoFilt"></KeyId>
+                </Server>
+                """
+    payload = header + body + footer
+    p = self.post(payload)
     if "<Success/>" in p:
         return True
     else:
@@ -249,6 +252,31 @@ def set_ntp(self, addr1, addr2, addr3):
                 raise Exception(f'Error not found -> {err}')
             else:
                 raise Exception(f'Error from {self.ip} -> {err}')
+
+def set_ntp_auto(self):
+    payload = f"""<Configuration>
+    <NetworkServices>
+    <NTP>
+    <Mode valueSpaceRef="/Valuespace/TTPAR_AutoManualOff">Auto</Mode>
+    </NTP>
+    </NetworkServices>
+    </Configuration>"""
+    p = self.post(payload)
+    if "<Success/>" in p:
+        return True
+    else:
+        try:
+            soup = bs4.BeautifulSoup(p,'lxml')
+        except Exception as e:
+            raise Exception(f'Issue parsing XML -> {e}')
+        else:
+            try:
+                err = soup.command.reason.text
+            except AttributeError:
+                raise Exception(f'Error not found -> {err}')
+            else:
+                raise Exception(f'Error from {self.ip} -> {err}')
+
 
 # ---- PRIVATE METHODS ---- #
 
