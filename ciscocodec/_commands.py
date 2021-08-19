@@ -253,14 +253,17 @@ def set_ntp(self, mode, **addresses):
             else:
                 raise Exception(f'Error from {self.ip} -> {err}')
 
-def set_ntp_auto(self):
-    payload = f"""<Configuration>
-    <NetworkServices>
-    <NTP>
-    <Mode valueSpaceRef="/Valuespace/TTPAR_AutoManualOff">Auto</Mode>
-    </NTP>
-    </NetworkServices>
-    </Configuration>"""
+# -- Firmware update -- #
+
+def update_firmware(self, url):
+    payload = f"""<Command>
+    <SystemUnit>
+    <SoftwareUpgrade>
+    <URL>{url}</URL>
+    </SoftwareUpgrade>
+    </SystemUnit>
+    </Command>"""
+    
     p = self.post(payload)
     if "<Success/>" in p:
         return True
@@ -276,6 +279,7 @@ def set_ntp_auto(self):
                 raise Exception(f'Error not found -> {err}')
             else:
                 raise Exception(f'Error from {self.ip} -> {err}')
+    
 
 
 # ---- PRIVATE METHODS ---- #

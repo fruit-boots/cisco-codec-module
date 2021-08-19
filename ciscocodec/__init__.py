@@ -8,6 +8,7 @@ class Codec(object):
     from ._commands import add_user, delete_user
     from ._commands import enable_macros, enable_autostart
     from ._commands import set_ntp
+    from ._commands import update_firmware
     from ._xmlapi import get, post, get_cookie, close_session
     
     def __init__(self, ip, user, password):
