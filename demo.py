@@ -77,10 +77,16 @@ else:
 #codec.get('uri')
 #codec.post('command')
 
-# get codec information
+# get codec information, skip otherwise
 if codec.session_cookie is not None and codec.online:
     print('\nGetting codec information...\n')
     pprint.pprint(codec.get_codec_details())# make it readable
+    # close session
+    print('\nClosing session...\n')
+    print('Success closing session:',codec.close_session())
+else:
+    print("nothing to do!")
+
 
 #-- Set some settings
 #codec.enable_macros('off')
@@ -105,7 +111,3 @@ if codec.session_cookie is not None and codec.online:
 #-- Create/Delete user
 #codec.create_user(username, password, role)
 #codec.delete_user(username)
-
-# close session
-print('\nClosing session...\n')
-print('Success closing session:',codec.close_session())
