@@ -27,6 +27,7 @@ Available commands:
 .get_attributes() - returns a dictionary of the objects attributes
 .set_attributes() - only recomended if you absoultely need it. This will override the objects attributes.
 .set_ntp() - auto, manual, off. Manual requires ntp addresses in k,v format
+.update_firmware() - requires url to where the .pkg file lives as a parameter
 
 Object attributes (on instantiation):
 
