@@ -145,4 +145,4 @@ output.csv
 *.pyc
 cookie_cleaner.py
 testing.py
-*.vs
+.vs/
