@@ -70,13 +70,15 @@ codec.check_online_status()
 # get cookie to make calls
 if codec.online:
     codec.get_cookie()
+else:
+    print(f"{ip} is not online!")
 
 # make direct calls with get/post if you wish. Reference cisco XMLAPI documentation.
 #codec.get('uri')
 #codec.post('command')
 
 # get codec information
-if codec.session_cookie is not None:
+if codec.session_cookie is not None and codec.online:
     print('\nGetting codec information...\n')
     pprint.pprint(codec.get_codec_details())# make it readable
 
