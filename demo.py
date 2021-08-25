@@ -26,6 +26,7 @@ Available commands:
 .get_codec_details() - retrieves the codecs attibutes mentioned below
 .get_attributes() - returns a dictionary of the objects attributes
 .set_attributes() - only recomended if you absoultely need it. This will override the objects attributes.
+.set_ntp() - auto, manual, off. Manual requires ntp addresses in k,v format
 
 Object attributes (on instantiation):
 
