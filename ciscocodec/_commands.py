@@ -265,7 +265,7 @@ def update_firmware(self, url):
     </Command>"""
     
     p = self.post(payload)
-    if "<Success/>" in p:
+    if 'status="OK"' in p:
         return True
     else:
         try:
