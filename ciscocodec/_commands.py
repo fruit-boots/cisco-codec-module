@@ -194,7 +194,7 @@ def enable_autostart(self, mode='on'):
     elif self.macro_capable is None:
         raise Exception("Unable to know if codec supports macros. Run `.update_codec_details()`")
     if mode in ['on','off']:
-        p = self.put_xml(f'<?xml version="1.0"?><Configuration><Macros><Autostart>{mode}</Autostart></Macros></Configuration>')
+        p = self.post(f'<?xml version="1.0"?><Configuration><Macros><Autostart>{mode}</Autostart></Macros></Configuration>')
         if "Success" in p:
             if mode == 'on':
                 self.macros_enabled = True
