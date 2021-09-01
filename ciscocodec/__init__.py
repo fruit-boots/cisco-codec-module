@@ -52,7 +52,7 @@ class Codec(object):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.settimeout(self.timeout)
         try:
-            s.connect((self.ip, 80))
+            s.connect((self.ip, 443))
         except socket.timeout:
             self.online = False
         else:
