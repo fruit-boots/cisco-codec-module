@@ -1,6 +1,7 @@
 import bs4
 import os
 import requests
+from time import sleep
 
 def get_codec_details(self):
     # status xml parsing
@@ -267,7 +268,15 @@ def update_firmware(self, url):
     try:
         p = self.post(payload)
     except requests.exceptions.ReadTimeout:
-        return "Beginning update..."
+        # check port 443 until it comes back online
+        counter = 30
+        while counter != 0:
+            time.sleep(60)
+            counter -= 1
+            online = self.check_online_status()
+            if online:
+                return true
+        
     
 def presentation_selection(self, source, mode):
     """ Modes available: "AutoShare", "Desktop", "Manual", "OnConnect" """
