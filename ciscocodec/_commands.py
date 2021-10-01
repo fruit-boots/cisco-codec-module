@@ -263,24 +263,13 @@ def update_firmware(self, url):
     </SoftwareUpgrade>
     </SystemUnit>
     </Command>"""
-    
-    p = self.post(payload)
-    if 'status="OK"' in p:
-        return True
-    else:
-        try:
-            soup = bs4.BeautifulSoup(p,'lxml')
-        except Exception as e:
-            raise Exception(f'Issue parsing XML -> {e}')
-        else:
-            try:
-                err = soup.command.reason.text
-            except AttributeError:
-                raise Exception(f'Error not found -> {err}')
-            else:
-                raise Exception(f'Error from {self.ip} -> {err}')
+    try:
+        p = self.post(payload)
+    except requests.exceptions.ReadTimeout:
+        return "Beginning update..."
     
 def presentation_selection(self, source, mode):
+    """ Modes available: "AutoShare", "Desktop", "Manual", "OnConnect" """
     if mode not in ["AutoShare","Desktop","Manual","OnConnect"]:
         raise Exception('Mode must be either "AutoShare", "Desktop", "Manual", or "OnConnect"')
     p = self.post(f'<?xml version="1.0"?><Configuration><Video><Input><Connector item="{source}"><PresentationSelection>{mode}</PresentationSelection></Connector></Input></Video></Configuration>')        
