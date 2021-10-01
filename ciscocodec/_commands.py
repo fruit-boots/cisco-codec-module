@@ -271,11 +271,12 @@ def update_firmware(self, url):
         # check port 443 for 30 mins until it comes back online
         counter = 30
         while counter != 0:
-            time.sleep(60)
+            sleep(60)
             counter -= 1
             online = self.check_online_status()
             if online:
-                return true
+                return True
+        return "Online check has timed out after 30 minutes."
         
     
 def presentation_selection(self, source, mode):
