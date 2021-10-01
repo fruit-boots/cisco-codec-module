@@ -268,7 +268,7 @@ def update_firmware(self, url):
     try:
         p = self.post(payload)
     except requests.exceptions.ReadTimeout:
-        # check port 443 until it comes back online
+        # check port 443 for 30 mins until it comes back online
         counter = 30
         while counter != 0:
             time.sleep(60)
