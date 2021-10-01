@@ -1,5 +1,6 @@
 import bs4
 import os
+import requests
 
 def get_codec_details(self):
     # status xml parsing
