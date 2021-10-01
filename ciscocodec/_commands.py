@@ -280,7 +280,21 @@ def update_firmware(self, url):
             else:
                 raise Exception(f'Error from {self.ip} -> {err}')
     
-
+def presentation_selection(self, source, mode):
+    if mode not in ["AutoShare","Desktop","Manual","OnConnect"]:
+        raise Exception('Mode must be either "AutoShare", "Desktop", "Manual", or "OnConnect"')
+    p = self.post(f'<?xml version="1.0"?><Configuration><Video><Input><Connector item="{source}"><PresentationSelection>{mode}</PresentationSelection></Connector></Input></Video></Configuration>')        
+    if "<Success/>" in p:
+        return True
+    else:
+        try:
+            soup = bs4.BeautifulSoup(p,'lxml')
+            err = soup.command.reason.text
+        except AttributeError:
+            raise Exception(f'Error not found -> {err}')
+        else:
+            raise Exception(f'Error from {self.ip} -> {err}')
+    
 
 # ---- PRIVATE METHODS ---- #
 
