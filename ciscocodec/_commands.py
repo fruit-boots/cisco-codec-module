@@ -304,6 +304,7 @@ def get_diagnostics(self):
         raise Exception(f'Issue parsing XML -> {e}')
     for msg in soup.find_all('message'):
         diagnostics.append({key:msg.find(key).text for key in ['level','type','description','references']})
+    self.diagnostics = diagnostics
     return diagnostics
 
 # ---- PRIVATE METHODS ---- #

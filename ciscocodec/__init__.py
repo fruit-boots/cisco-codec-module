@@ -37,6 +37,7 @@ class Codec(object):
         self.session_cookie = None
         self.configuration_xml = None
         self.status_xml = None
+        self.diagnostics = None
         self.timeout = 10
         
     def get_attributes(self,detailed=False):      
