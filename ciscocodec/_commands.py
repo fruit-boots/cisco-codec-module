@@ -294,7 +294,17 @@ def presentation_selection(self, source, mode):
             raise Exception(f'Error not found -> {err}')
         else:
             raise Exception(f'Error from {self.ip} -> {err}')
-    
+
+def get_diagnostics(self):
+    diagnostics = list()
+    r = self.get('/getxml?location=Status/Diagnostics/Message/')
+    try:
+        soup = bs4.BeautifulSoup(r,'lxml')
+    except Exception as e:
+        raise Exception(f'Issue parsing XML -> {e}')
+    for msg in soup.find_all('message'):
+        diagnostics.append({key:msg.find(key).text for key in ['level','type','description','references']})
+    return diagnostics
 
 # ---- PRIVATE METHODS ---- #
 

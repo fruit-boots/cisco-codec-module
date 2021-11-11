@@ -10,6 +10,7 @@ class Codec(object):
     from ._commands import set_ntp
     from ._commands import update_firmware
     from ._commands import presentation_selection
+    from ._commands import get_diagnostics
     from ._xmlapi import get, post, get_cookie, close_session
     
     def __init__(self, ip, user, password):
