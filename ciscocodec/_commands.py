@@ -6,7 +6,6 @@ from time import sleep
 def get_codec_details(self):
     # status xml parsing
     self.status_xml = self.get('status.xml')
-    _get_device_name(self)
     _get_number_of_panels(self)
     _get_sw_version(self)
     _get_device_type(self)
@@ -14,6 +13,7 @@ def get_codec_details(self):
     _get_sip_uri(self)
     # config xml parsing
     self.configuration_xml = self.get('configuration.xml')
+    _get_device_name(self)
     if self.macro_capable:
         _get_macros_enabled(self)
         _get_macros_autostart(self)
@@ -307,7 +307,11 @@ def get_diagnostics(self):
     self.diagnostics = diagnostics
     return diagnostics
 
+# ------------------------- #
 # ---- PRIVATE METHODS ---- #
+# ------------------------- #
+
+# -- User Information -- #
 
 def _get_users(obj):
     users = []
@@ -334,6 +338,27 @@ def _get_users(obj):
             raise Exception(f'Error from {self.ip} -> {err}')
 
 # -- configuration XML parsing -- #
+
+# -- System Name -- #
+
+def _get_device_name_config(obj):
+    # for some reason different devices store the sys name in status.xml
+    # so this will call the status parser if name is null.
+    # usually, config.xml has the name.
+    try:
+        soup = bs4.BeautifulSoup(obj.configuration_xml, features='lxml')
+    except Exception as e:
+        raise Exception(f"Issue trying to parse status XML for device name -> {e}")
+    else:
+        try:
+            name = soup.systemunit.find('name').text
+            if name == '':
+                _get_device_name_status(obj)
+                return
+        except AttributeError:
+            raise Exception("Could not find 'name' in status XML")
+        else:
+            obj.device_name = str(name)
 
 # -- Macro Parsing -- #
 
@@ -420,7 +445,7 @@ def _get_extensions(obj):
 
 # -- Status XML parsing -- #
 
-def _get_device_name(obj):
+def _get_device_name_status(obj):
     try:
         soup = bs4.BeautifulSoup(obj.status_xml, features='lxml')
     except Exception as e:
