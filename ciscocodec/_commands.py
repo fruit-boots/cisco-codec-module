@@ -13,7 +13,7 @@ def get_codec_details(self):
     _get_sip_uri(self)
     # config xml parsing
     self.configuration_xml = self.get('configuration.xml')
-    _get_device_name(self)
+    _get_device_name_config(self)
     if self.macro_capable:
         _get_macros_enabled(self)
         _get_macros_autostart(self)
