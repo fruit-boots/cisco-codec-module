@@ -38,6 +38,7 @@ class Codec(object):
         self.configuration_xml = None
         self.status_xml = None
         self.diagnostics = None
+        self.crestron_controlled = None
         self.timeout = 10
         
     def get_attributes(self,detailed=False):      

@@ -7,6 +7,7 @@ def get_codec_details(self):
     # status xml parsing
     self.status_xml = self.get('status.xml')
     _get_number_of_panels(self)
+    _get_crestron(self)
     _get_sw_version(self)
     _get_device_type(self)
     _get_macro_capable(self)
@@ -478,6 +479,27 @@ def _get_number_of_panels(obj):
                         obj.number_of_panels += 1
         if obj.number_of_panels == 0:
             obj.number_of_panels = None
+
+def _get_crestron(obj):
+    try:
+        soup = bs4.BeautifulSoup(obj.status_xml, features='lxml')
+    except Exception as e:
+        raise Exception(f"Issue trying to parse status XML for number of panels -> {e}")
+    else:
+        devices = soup.find_all("connecteddevice")
+        for device in devices:
+            try:
+                name = device.find('name').text
+            except AttributeError:
+                # only way to skip
+                pass
+            else:
+                if name == "Crestron Control System":
+                    if device.status.text == "Connected":
+                        obj.crestron_controlled = True
+                        return
+    obj.crestron_crontrolled = False
+    
 
 def _get_sw_version(obj):
     try:
