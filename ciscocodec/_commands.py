@@ -498,7 +498,7 @@ def _get_crestron(obj):
                     if device.status.text == "Connected":
                         obj.crestron_controlled = True
                         return
-    obj.crestron_crontrolled = False
+    obj.crestron_controlled = False
     
 
 def _get_sw_version(obj):
